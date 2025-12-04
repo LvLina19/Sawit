@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_beranda"
+        android:icon="@drawable/ic_home"
+        android:title="Beranda" />
+
+    <item
+        android:id="@+id/nav_laporan"
+        android:icon="@drawable/ic_report"
+        android:title="Laporan" />
+
+    <item
+        android:id="@+id/nav_deteksi"
+        android:icon="@drawable/ic_camera"
+        android:title="Deteksi" />
+
+    <item
+        android:id="@+id/nav_search"
+        android:icon="@drawable/ic_search"
+        android:title="Search" />
+
+    <item
+        android:id="@+id/nav_pengaturan"
+        android:icon="@drawable/ic_settings"
+        android:title="Pengaturan" />
+</menu>

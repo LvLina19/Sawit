@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Nama Aplikasi Anda</string>
+
+    <string name="registrasi_akun">Registrasi Akun</string>
+    <string name="username_atau_email">Username atau Email</string>
+    <string name="password">Password</string>
+    <string name="konfirmasi_password">Konfirmasi Password</string>
+    <string name="register">Register</string>
+    <string name="atau_lanjutkan_dengan">– Atau Lanjutkan dengan –</string>
+
+    <string name="saya_sudah_punya_akun">Saya Sudah Punya Akun</string>
+    <string name="login">Login</string>
+
+    <string name="header_image_desc">Ilustrasi petani dengan latar belakang perkebunan</string>
+    <string name="login_with_google">Masuk dengan akun Google</string>
+
+    <string name="error_field_required">Field ini harus diisi</string>
+    <string name="error_password_length">Password minimal 6 karakter</string>
+    <string name="error_password_mismatch">Konfirmasi password tidak cocok</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
