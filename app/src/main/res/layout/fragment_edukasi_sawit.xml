@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="#FFFFFF">
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -79,23 +79,24 @@
 
             <!-- Article Cards -->
             <LinearLayout
+                android:id="@+id/container_awal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
+                android:layout_height="270dp"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
 
                 <!-- Article 1 -->
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cardArticle1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="?android:attr/selectableItemBackground">
+                    android:foreground="?android:attr/selectableItemBackground"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -105,9 +106,9 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="120dp"
-                            android:src="@drawable/article_tbs"
+                            android:contentDescription="Article Image"
                             android:scaleType="centerCrop"
-                            android:contentDescription="Article Image" />
+                            android:src="@drawable/article_tbs" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -118,33 +119,33 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Dampak Kebijakan Pemerintah terhadap Harga TBS"
-                                android:textSize="14sp"
-                                android:textColor="#333333"
-                                android:textStyle="bold"
-                                android:maxLines="2"
+                                android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
                                 android:fontFamily="@font/montserrat"
-                                android:layout_marginBottom="8dp" />
+                                android:maxLines="2"
+                                android:text="Dampak Kebijakan Pemerintah terhadap Harga TBS"
+                                android:textColor="#333333"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Pemerintah sering mengintervensi harga komoditas pertanian termasuk TBS. Lalu, bagaimana sebenarnya harga TBS terbentuk di Indonesia?"
-                                android:textSize="12sp"
-                                android:textColor="#666666"
-                                android:maxLines="3"
+                                android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
                                 android:fontFamily="@font/montserrat"
-                                android:layout_marginBottom="8dp" />
+                                android:maxLines="3"
+                                android:text="Pemerintah sering mengintervensi harga komoditas pertanian termasuk TBS. Lalu, bagaimana sebenarnya harga TBS terbentuk di Indonesia?"
+                                android:textColor="#666666"
+                                android:textSize="12sp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="@font/montserrat"
                                 android:text="← Baca lalu"
-                                android:textSize="11sp"
                                 android:textColor="#999999"
-                                android:fontFamily="@font/montserrat" />
+                                android:textSize="11sp" />
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -154,13 +155,13 @@
                     android:id="@+id/cardArticle2"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="?android:attr/selectableItemBackground">
+                    android:foreground="?android:attr/selectableItemBackground"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -170,46 +171,47 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="120dp"
-                            android:src="@drawable/article_quality"
+                            android:contentDescription="Article Image"
                             android:scaleType="centerCrop"
-                            android:contentDescription="Article Image" />
+                            android:src="@drawable/article_quality" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginBottom="0dp"
                             android:orientation="vertical"
                             android:padding="12dp">
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Tips Jaga Kualitas TBS &amp; Harga Tinggi"
-                                android:textSize="14sp"
-                                android:textColor="#333333"
-                                android:textStyle="bold"
-                                android:maxLines="2"
+                                android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
                                 android:fontFamily="@font/montserrat"
-                                android:layout_marginBottom="8dp" />
+                                android:maxLines="2"
+                                android:text="Tips Jaga Kualitas TBS &amp; Harga Tinggi"
+                                android:textColor="#333333"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Kualitas TBS yang baik menentukan harga jual. TBS, sebagai cara untuk memaksimalkan hasil panen dan keuntungan petani sawit."
-                                android:textSize="12sp"
-                                android:textColor="#666666"
-                                android:maxLines="3"
+                                android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
                                 android:fontFamily="@font/montserrat"
-                                android:layout_marginBottom="8dp" />
+                                android:maxLines="3"
+                                android:text="Kualitas TBS yang baik menentukan harga jual. TBS, sebagai cara untuk memaksimalkan hasil panen dan keuntungan petani sawit."
+                                android:textColor="#666666"
+                                android:textSize="12sp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="@font/montserrat"
                                 android:text="← Baca lalu"
-                                android:textSize="11sp"
                                 android:textColor="#999999"
-                                android:fontFamily="@font/montserrat" />
+                                android:textSize="11sp" />
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -219,12 +221,12 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Ayo Bermain &amp; Raih Hadiah Menarik!"
-                android:textSize="18sp"
-                android:textColor="#4CAF50"
-                android:textStyle="bold"
+                android:layout_marginBottom="12dp"
                 android:fontFamily="@font/montserrat"
-                android:layout_marginBottom="12dp" />
+                android:text="Ayo Bermain &amp; Raih Hadiah Menarik!"
+                android:textColor="#4CAF50"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <!-- Game Cards -->
             <LinearLayout
