@@ -55,6 +55,8 @@ class regris : AppCompatActivity() {
         binding.tvLoginLink.setOnClickListener {
             navigateToLogin()
         }
+
+
     }
 
     private fun validateAndRegister() {
@@ -122,7 +124,7 @@ class regris : AppCompatActivity() {
         Toast.makeText(this, "Registrasi berhasil!", Toast.LENGTH_SHORT).show()
 
         // Navigate to login or main activity
-        navigateToLogin()
+        navigateToMainActivity()
         finish()
     }
 

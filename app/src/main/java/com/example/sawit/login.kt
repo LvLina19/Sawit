@@ -32,6 +32,7 @@ class login : AppCompatActivity() {
     private lateinit var btnGoogle: ImageButton
     private lateinit var progressBar: ProgressBar
     private lateinit var tvRegister: TextView
+    private lateinit var Tv_Lupa_Password: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +58,7 @@ class login : AppCompatActivity() {
         btnGoogle = findViewById(R.id.btn_google_login)
         progressBar = findViewById(R.id.progressBar)
         tvRegister = findViewById(R.id.tv_login_link)
+        Tv_Lupa_Password = findViewById(R.id.Tv_Lupa_Password)
     }
 
     private fun setupGoogleSignIn() {
@@ -107,6 +109,11 @@ class login : AppCompatActivity() {
             // Ganti RegisterActivity dengan nama activity register Anda
              startActivity(Intent(this, regris::class.java))
         }
+        Tv_Lupa_Password.setOnClickListener {
+            startActivity(Intent(this, LupaPassword_activity::class.java))
+
+        }
+
     }
 
     private fun loginWithEmail() {

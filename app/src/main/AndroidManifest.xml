@@ -24,6 +24,9 @@
             android:name=".ScreenActivity"
             android:exported="false" />
         <activity
+            android:name=".LupaPassword_activity"
+            android:exported="false" />
+        <activity
             android:name=".SplashScreenActivity"
             android:exported="true">
             <intent-filter>
