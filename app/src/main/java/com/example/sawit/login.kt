@@ -106,7 +106,6 @@ class login : AppCompatActivity() {
         tvRegister.setOnClickListener {
             // Ganti RegisterActivity dengan nama activity register Anda
              startActivity(Intent(this, regris::class.java))
-            Toast.makeText(this, "Fitur register belum tersedia", Toast.LENGTH_SHORT).show()
         }
     }
 

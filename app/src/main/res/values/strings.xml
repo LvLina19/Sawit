@@ -13,7 +13,7 @@
     <string name="login">Login</string>
     <string name="Submit">Submit</string>
     <string name="RegristerU"><u>Regrister</u></string>
-    <string name="LoginU"><u><Log></Log>in</u></string>
+    <string name="LoginU"><u>Login</u></string>
 
     <string name="header_image_desc">Ilustrasi petani dengan latar belakang perkebunan</string>
     <string name="login_with_google">Masuk dengan akun Google</string>
