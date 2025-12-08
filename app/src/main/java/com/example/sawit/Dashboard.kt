@@ -5,18 +5,14 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
-import com.example.sawit.Halaman.BerandaFragment
-import com.example.sawit.Halaman.DeteksiFragment
-import com.example.sawit.Halaman.LaporanFragment
-import com.example.sawit.Halaman.PengaturanFragment
-import com.example.sawit.Halaman.SearchFragment
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.sawit.IsiDashboard.BerandaFragment
+import com.example.sawit.IsiDashboard.DeteksiFragment
+import com.example.sawit.IsiDashboard.LaporanFragment
+import com.example.sawit.IsiDashboard.PengaturanFragment
+import com.example.sawit.IsiDashboard.SearchFragment
 
 class Dashboard : AppCompatActivity() {
     private lateinit var navBeranda: LinearLayout
@@ -65,7 +61,7 @@ class Dashboard : AppCompatActivity() {
 
         labelBeranda = findViewById(R.id.labelBeranda)
         labelLaporan = findViewById(R.id.labelLaporan)
-        labelSearch = findViewById(R.id.labelSearch)
+        labelSearch = findViewById(R.id.Edukasi)
         labelPengaturan = findViewById(R.id.labelPengaturan)
     }
 

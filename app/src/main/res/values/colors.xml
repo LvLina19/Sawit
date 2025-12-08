@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="green_primary">#4CAF50</color>
-    <color name="green_dark">#388E3C</color>
+
     <color name="grey_secondary">#757575</color>
     <color name="light_grey">#E0E0E0</color>
     <color name="gray_inactive">#999999</color>
+        <!-- Primary Colors -->
+        <color name="green_primary">#4CAF50</color>
+        <color name="green_dark">#388E3C</color>
+        <color name="green_light">#81C784</color>
+
+        <!-- Neutral Colors -->
+        <color name="white">#FFFFFF</color>
+        <color name="black">#000000</color>
+        <color name="gray_light">#F5F5F5</color>
+        <color name="gray_medium">#999999</color>
+        <color name="gray_dark">#333333</color>
+        <color name="gray_border">#F0F0F0</color>
+        <color name="gray_text">#666666</color>
+
+        <!-- Status Colors -->
+        <color name="red_danger">#D32F2F</color>
+        <color name="red_error">#F44336</color>
+
+        <!-- Transparent -->
+        <color name="transparent">#00000000</color>
+
 </resources>

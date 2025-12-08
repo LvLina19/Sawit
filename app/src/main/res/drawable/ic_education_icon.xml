@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Topi bagian atas -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M12,3L1,9l11,6 11,-6z" />
+
+    <!-- Tali samping -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M5,10v5c0,0.6 0.4,1 1,1h2c0.6,0 1,-0.4 1,-1v-3" />
+
+    <!-- Bawah topi -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M12,21l8,-4v-4l-8,4 -8,-4v4z" />
+
+</vector>

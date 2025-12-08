@@ -1,4 +1,4 @@
-package com.example.sawit.Halaman
+package com.example.sawit.IsiDashboard
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,28 +7,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import com.example.sawit.Dashboard
 import com.example.sawit.R
-class SatuFragment : Fragment() {
-    private lateinit var btnSkip: Button
+import com.example.sawit.login
+
+class DuaFragment : Fragment() {
+    private lateinit var btnMulai: Button
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_satu, container, false)
+        val view = inflater.inflate(R.layout.fragment_dua, container, false)
 
         // Initialize button
-        btnSkip = view.findViewById(R.id.Skip)
+        btnMulai = view.findViewById(R.id.Mulai)
 
         // Setup click listener
-        btnSkip.setOnClickListener {
-            // Navigate to Dashboard Activity
-            val intent = Intent(activity, Dashboard::class.java)
+        btnMulai.setOnClickListener {
+            val intent = Intent(activity, login::class.java)
             startActivity(intent)
 
-            // Close current activity (ScreenActivity)
+            // Close ScreenActivity
             activity?.finish()
         }
 

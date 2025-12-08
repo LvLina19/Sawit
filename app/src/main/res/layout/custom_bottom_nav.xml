@@ -124,14 +124,14 @@
             android:id="@+id/iconSearch"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/ic_search"
+            android:src="@drawable/ic_education_icon"
             app:tint="#999999" />
 
         <TextView
-            android:id="@+id/labelSearch"
+            android:id="@+id/Edukasi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Search"
+            android:text="Edukasi"
             android:textSize="12sp"
             android:textColor="#999999"
             android:layout_marginTop="4dp"

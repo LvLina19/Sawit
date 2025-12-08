@@ -9,10 +9,15 @@
     <string name="atau_lanjutkan_dengan">– Atau Lanjutkan dengan –</string>
 
     <string name="saya_sudah_punya_akun">Saya Sudah Punya Akun</string>
+    <string name="belum_punya_akun">Belum Punya Akun ?</string>
     <string name="login">Login</string>
+    <string name="Submit">Submit</string>
+    <string name="RegristerU"><u>Regrister</u></string>
+    <string name="LoginU"><u><Log></Log>in</u></string>
 
     <string name="header_image_desc">Ilustrasi petani dengan latar belakang perkebunan</string>
     <string name="login_with_google">Masuk dengan akun Google</string>
+    <string name="Lupa_Password">Lupa Password ?</string>
 
     <string name="error_field_required">Field ini harus diisi</string>
     <string name="error_password_length">Password minimal 6 karakter</string>

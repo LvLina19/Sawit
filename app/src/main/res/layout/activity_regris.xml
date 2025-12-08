@@ -7,7 +7,6 @@
     android:padding="0dp"
     tools:context=".regris">
 
-
     <ImageView
         android:id="@+id/header_image"
         android:layout_width="0dp"
@@ -213,9 +212,9 @@
             android:id="@+id/tv_login_link"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/login"
+            android:text="@string/LoginU"
             android:textSize="14sp"
-            android:textColor="@color/green_primary"
+            android:textColor="#2A92F4"
             android:textStyle="bold"
             android:layout_marginStart="4dp"
             android:clickable="true"
