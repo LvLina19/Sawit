@@ -72,6 +72,8 @@ dependencies {
     // https://firebase.google.com/docs/android/setup#available-libraries
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("com.google.firebase:firebase-auth:23.0.0")
-
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.23.2")
+    implementation("androidx.activity:activity-ktx:1.8.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
 }
