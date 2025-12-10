@@ -9,6 +9,10 @@
         <color name="green_dark">#388E3C</color>
         <color name="green_light">#81C784</color>
 
+    <color name="orange_start">#FFC107</color>
+    <color name="orange_mid">#FF9800</color>
+    <color name="orange_end">#FF5722</color>
+
         <!-- Neutral Colors -->
         <color name="white">#FFFFFF</color>
         <color name="black">#000000</color>
