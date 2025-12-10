@@ -197,8 +197,8 @@
                         <ImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
-                            android:src="@drawable/ic_education_icon"
-                            android:layout_marginBottom="12dp"/>
+                            android:layout_marginBottom="12dp"
+                            android:src="@drawable/ic_education" />
 
                         <TextView
                             android:layout_width="wrap_content"
