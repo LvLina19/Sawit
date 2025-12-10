@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardKebun"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header with nama kebun and delete button -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvNamaKebun"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/btnDelete"
+                android:text="Nama Kebun"
+                android:textColor="#000000"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/btnDelete"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@android:drawable/ic_menu_delete"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="#F44336" />
+        </RelativeLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="#E0E0E0" />
+
+        <!-- Luas Lahan -->
+        <TextView
+            android:id="@+id/tvLuasLahan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Luas: 100 ha"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+
+        <!-- Lokasi Kebun -->
+        <TextView
+            android:id="@+id/tvLokasiKebun"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Lokasi: Pekanbaru"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+
+        <!-- Jenis Bibit -->
+        <TextView
+            android:id="@+id/tvJenisBibit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Bibit: Kelapa Sawit"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+
+        <!-- Jumlah Tanaman -->
+        <TextView
+            android:id="@+id/tvJumlahTanaman"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Jumlah: 5000 tanaman"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+
+        <!-- Tahun Tanam -->
+        <TextView
+            android:id="@+id/tvTahunTanam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Tahun Tanam: Januari 2020"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+
+        <!-- Jenis Tanah -->
+        <TextView
+            android:id="@+id/tvJenisTanah"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tanah: Mineral"
+            android:textColor="#4CAF50"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
