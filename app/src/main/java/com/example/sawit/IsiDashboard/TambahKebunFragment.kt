@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
 import com.example.sawit.R
@@ -31,6 +32,12 @@ class TambahKebunFragment : Fragment() {
     private lateinit var btnMineralVolkanik: CardView
     private lateinit var btnMineralBerpasir: CardView
     private lateinit var btnSubmit: CardView
+
+    // TextViews untuk mengubah warna teks
+    private lateinit var tvMineral: TextView
+    private lateinit var tvGambut: TextView
+    private lateinit var tvMineralVolkanik: TextView
+    private lateinit var tvMineralBerpasir: TextView
 
     private var selectedJenisTanah: String = "Mineral"
     private lateinit var kebunManager: KebunManager
@@ -66,6 +73,16 @@ class TambahKebunFragment : Fragment() {
         btnMineralVolkanik = view.findViewById(R.id.btnMineralVolkanik)
         btnMineralBerpasir = view.findViewById(R.id.btnMineralBerpasir)
         btnSubmit = view.findViewById(R.id.btnSubmit)
+
+        // Initialize TextViews untuk mengubah warna teks
+        tvMineral = btnMineral.findViewById<TextView>(android.R.id.text1) ?:
+                btnMineral.getChildAt(0) as TextView
+        tvGambut = btnGambut.findViewById<TextView>(android.R.id.text1) ?:
+                btnGambut.getChildAt(0) as TextView
+        tvMineralVolkanik = btnMineralVolkanik.findViewById<TextView>(android.R.id.text1) ?:
+                btnMineralVolkanik.getChildAt(0) as TextView
+        tvMineralBerpasir = btnMineralBerpasir.findViewById<TextView>(android.R.id.text1) ?:
+                btnMineralBerpasir.getChildAt(0) as TextView
     }
 
     private fun setupListeners() {
@@ -126,18 +143,52 @@ class TambahKebunFragment : Fragment() {
     private fun selectJenisTanah(jenisTanah: String) {
         selectedJenisTanah = jenisTanah
 
-        // Reset all buttons to unselected state
-        btnMineral.setCardBackgroundColor(resources.getColor(android.R.color.holo_green_light))
-        btnGambut.setCardBackgroundColor(resources.getColor(android.R.color.holo_green_light))
-        btnMineralVolkanik.setCardBackgroundColor(resources.getColor(android.R.color.holo_green_light))
-        btnMineralBerpasir.setCardBackgroundColor(resources.getColor(android.R.color.holo_green_light))
+        // Warna unselected (hijau muda) dan selected (hijau tua)
+        val colorUnselected = android.graphics.Color.parseColor("#E8F5E9")
+        val colorSelected = android.graphics.Color.parseColor("#4CAF50")
+        val textColorUnselected = android.graphics.Color.parseColor("#4CAF50")
+        val textColorSelected = android.graphics.Color.parseColor("#FFFFFF")
 
-        // Set selected button to green
+        // Reset all buttons to unselected state
+        btnMineral.setCardBackgroundColor(colorUnselected)
+        btnGambut.setCardBackgroundColor(colorUnselected)
+        btnMineralVolkanik.setCardBackgroundColor(colorUnselected)
+        btnMineralBerpasir.setCardBackgroundColor(colorUnselected)
+
+        // Reset all text colors to unselected
+        tvMineral.setTextColor(textColorUnselected)
+        tvGambut.setTextColor(textColorUnselected)
+        tvMineralVolkanik.setTextColor(textColorUnselected)
+        tvMineralBerpasir.setTextColor(textColorUnselected)
+
+        // Reset text style
+        tvMineral.setTypeface(null, android.graphics.Typeface.NORMAL)
+        tvGambut.setTypeface(null, android.graphics.Typeface.NORMAL)
+        tvMineralVolkanik.setTypeface(null, android.graphics.Typeface.NORMAL)
+        tvMineralBerpasir.setTypeface(null, android.graphics.Typeface.NORMAL)
+
+        // Set selected button
         when (jenisTanah) {
-            "Mineral" -> btnMineral.setCardBackgroundColor(resources.getColor(android.R.color.holo_green_dark))
-            "Gambut" -> btnGambut.setCardBackgroundColor(resources.getColor(android.R.color.holo_green_dark))
-            "Mineral Volkanik" -> btnMineralVolkanik.setCardBackgroundColor(resources.getColor(android.R.color.holo_green_dark))
-            "Mineral Berpasir" -> btnMineralBerpasir.setCardBackgroundColor(resources.getColor(android.R.color.holo_green_dark))
+            "Mineral" -> {
+                btnMineral.setCardBackgroundColor(colorSelected)
+                tvMineral.setTextColor(textColorSelected)
+                tvMineral.setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+            "Gambut" -> {
+                btnGambut.setCardBackgroundColor(colorSelected)
+                tvGambut.setTextColor(textColorSelected)
+                tvGambut.setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+            "Mineral Volkanik" -> {
+                btnMineralVolkanik.setCardBackgroundColor(colorSelected)
+                tvMineralVolkanik.setTextColor(textColorSelected)
+                tvMineralVolkanik.setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+            "Mineral Berpasir" -> {
+                btnMineralBerpasir.setCardBackgroundColor(colorSelected)
+                tvMineralBerpasir.setTextColor(textColorSelected)
+                tvMineralBerpasir.setTypeface(null, android.graphics.Typeface.BOLD)
+            }
         }
     }
 
