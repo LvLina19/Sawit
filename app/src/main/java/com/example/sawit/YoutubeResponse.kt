@@ -4,7 +4,7 @@ data class YoutubeResponse(
     val items: List<YoutubeItem>
 )
 
-data class YoutubeItem(
+    data class YoutubeItem(
     val snippet: Snippet
 )
 
