@@ -12,7 +12,7 @@ import com.example.sawit.IsiDashboard.BerandaFragment
 import com.example.sawit.IsiDashboard.DeteksiFragment
 import com.example.sawit.IsiDashboard.LaporanFragment
 import com.example.sawit.IsiDashboard.PengaturanFragment
-import com.example.sawit.IsiDashboard.SearchFragment
+import com.example.sawit.IsiDashboard.EdukasiFragment
 
 class Dashboard : AppCompatActivity() {
     private lateinit var navBeranda: LinearLayout
@@ -82,7 +82,7 @@ class Dashboard : AppCompatActivity() {
         }
 
         navSearch.setOnClickListener {
-            loadFragment(SearchFragment())
+            loadFragment(EdukasiFragment())
             updateSelectedMenu("search")
         }
 

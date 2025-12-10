@@ -404,6 +404,35 @@
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
+            <ProgressBar
+                android:id="@+id/progressBarVideos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone" />
+
+            <!-- Error Message -->
+            <TextView
+                android:id="@+id/tvErrorMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Gagal memuat video"
+                android:textSize="14sp"
+                android:textColor="#F44336"
+                android:fontFamily="@font/montserrat"
+                android:gravity="center"
+                android:padding="16dp"
+                android:visibility="gone" />
+
+            <!-- Video RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvVideos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:nestedScrollingEnabled="false" />
         </LinearLayout>
     </ScrollView>
 
