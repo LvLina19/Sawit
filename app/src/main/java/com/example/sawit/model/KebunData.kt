@@ -5,15 +5,19 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class KebunData(
-    val id: Int = 0,
-    val namaKebun: String = "",
-    val luasLahan: Double = 0.0,
-    val lokasiKebun: String = "",
-    val jenisBibit: String = "",
-    val jumlahTanaman: Int = 0,
-    val tahunTanam: String = "",
-    val jenisTanah: String = ""
+    var id: Int = 0,
+    var namaKebun: String = "",
+    var luasLahan: Double = 0.0,
+    var lokasiKebun: String = "",
+    var jenisBibit: String = "",
+    var jumlahTanaman: Int = 0,
+    var tahunTanam: String = "",
+    var jenisTanah: String = "",
+    var imageUrl: String = "" // Optional: untuk foto kebun
 ) : Parcelable {
+
+    // Constructor tanpa parameter untuk Firebase (WAJIB!)
+    constructor() : this(0, "", 0.0, "", "", 0, "", "", "")
 
     /**
      * Format luas lahan dengan 2 desimal
@@ -26,14 +30,18 @@ data class KebunData(
      * Format jumlah tanaman dengan thousand separator
      */
     fun getFormattedJumlahTanaman(): String {
-        return String.format("%,d pohon", jumlahTanaman)
+        return if (jumlahTanaman > 0) {
+            String.format("%,d pohon", jumlahTanaman)
+        } else {
+            "Tidak diisi"
+        }
     }
 
     /**
      * Hitung estimasi jumlah tanaman per hektar
      */
     fun getTanamanPerHektar(): Int {
-        return if (luasLahan > 0) {
+        return if (luasLahan > 0 && jumlahTanaman > 0) {
             (jumlahTanaman / luasLahan).toInt()
         } else {
             0
@@ -47,9 +55,86 @@ data class KebunData(
         return try {
             val tahunTanamInt = tahunTanam.split(" ").lastOrNull()?.toIntOrNull() ?: 0
             val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
-            currentYear - tahunTanamInt
+            if (tahunTanamInt > 0) currentYear - tahunTanamInt else 0
         } catch (e: Exception) {
             0
         }
     }
+
+    /**
+     * Get formatted usia kebun
+     */
+    fun getFormattedUsia(): String {
+        val usia = getUsiaTahun()
+        return if (usia > 0) "$usia tahun" else "Baru ditanam"
+    }
+
+    /**
+     * Validasi data kebun
+     */
+    fun isValid(): Boolean {
+        return namaKebun.isNotEmpty() &&
+                luasLahan > 0 &&
+                lokasiKebun.isNotEmpty() &&
+                jenisBibit.isNotEmpty() &&
+                tahunTanam.isNotEmpty() &&
+                jenisTanah.isNotEmpty()
+    }
 }
+
+
+//package com.example.sawit.model
+//
+//import android.os.Parcelable
+//import kotlinx.parcelize.Parcelize
+//
+//@Parcelize
+//data class KebunData(
+//    val id: Int = 0,
+//    val namaKebun: String = "",
+//    val luasLahan: Double = 0.0,
+//    val lokasiKebun: String = "",
+//    val jenisBibit: String = "",
+//    val jumlahTanaman: Int = 0,
+//    val tahunTanam: String = "",
+//    val jenisTanah: String = ""
+//) : Parcelable {
+//
+//    /**
+//     * Format luas lahan dengan 2 desimal
+//     */
+//    fun getFormattedLuas(): String {
+//        return String.format("%.2f Ha", luasLahan)
+//    }
+//
+//    /**
+//     * Format jumlah tanaman dengan thousand separator
+//     */
+//    fun getFormattedJumlahTanaman(): String {
+//        return String.format("%,d pohon", jumlahTanaman)
+//    }
+//
+//    /**
+//     * Hitung estimasi jumlah tanaman per hektar
+//     */
+//    fun getTanamanPerHektar(): Int {
+//        return if (luasLahan > 0) {
+//            (jumlahTanaman / luasLahan).toInt()
+//        } else {
+//            0
+//        }
+//    }
+//
+//    /**
+//     * Dapatkan usia kebun dalam tahun
+//     */
+//    fun getUsiaTahun(): Int {
+//        return try {
+//            val tahunTanamInt = tahunTanam.split(" ").lastOrNull()?.toIntOrNull() ?: 0
+//            val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+//            currentYear - tahunTanamInt
+//        } catch (e: Exception) {
+//            0
+//        }
+//    }
+//}
