@@ -35,33 +35,20 @@ class KebunAdapter(
     override fun getItemCount(): Int = kebunList.size
 
     inner class KebunViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val cardView: CardView = itemView.findViewById(R.id.cardKebun)
+        private val ivKebunImage: ImageView = itemView.findViewById(R.id.ivKebunImage)
         private val tvNamaKebun: TextView = itemView.findViewById(R.id.tvNamaKebun)
-        private val tvLuasLahan: TextView = itemView.findViewById(R.id.tvLuasLahan)
         private val tvLokasiKebun: TextView = itemView.findViewById(R.id.tvLokasiKebun)
-        private val tvJenisBibit: TextView = itemView.findViewById(R.id.tvJenisBibit)
-        private val tvJumlahTanaman: TextView = itemView.findViewById(R.id.tvJumlahTanaman)
-        private val tvTahunTanam: TextView = itemView.findViewById(R.id.tvTahunTanam)
-        private val tvJenisTanah: TextView = itemView.findViewById(R.id.tvJenisTanah)
+        private val btnLihatInformasi: View = itemView.findViewById(R.id.btnLihatInformasi)
         private val btnDelete: ImageView = itemView.findViewById(R.id.btnDelete)
 
         fun bind(kebunData: KebunData) {
             tvNamaKebun.text = kebunData.namaKebun
-            tvLuasLahan.text = "Luas: ${kebunData.luasLahan} ha"
-            tvLokasiKebun.text = "Lokasi: ${kebunData.lokasiKebun}"
-            tvJenisBibit.text = "Bibit: ${kebunData.jenisBibit}"
+            tvLokasiKebun.text = kebunData.lokasiKebun
 
-            if (kebunData.jumlahTanaman > 0) {
-                tvJumlahTanaman.visibility = View.VISIBLE
-                tvJumlahTanaman.text = "Jumlah: ${kebunData.jumlahTanaman} tanaman"
-            } else {
-                tvJumlahTanaman.visibility = View.GONE
-            }
+            // Set placeholder image (nanti bisa diganti dengan load image dari URL)
+            ivKebunImage.setImageResource(R.drawable.ic_kebun_placeholder)
 
-            tvTahunTanam.text = "Tahun Tanam: ${kebunData.tahunTanam}"
-            tvJenisTanah.text = "Tanah: ${kebunData.jenisTanah}"
-
-            cardView.setOnClickListener {
+            btnLihatInformasi.setOnClickListener {
                 onItemClick(kebunData)
             }
 

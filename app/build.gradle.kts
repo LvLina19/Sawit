@@ -80,5 +80,7 @@ dependencies {
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.23.2")
     implementation("androidx.activity:activity-ktx:1.8.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    // MPAndroidChart untuk grafik
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
 }

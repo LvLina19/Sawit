@@ -1,47 +1,70 @@
 package com.example.sawit.IsiDashboard
 
-//import android.R
 import android.app.DatePickerDialog
-import android.app.DatePickerDialog.OnDateSetListener
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.Toast
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import androidx.fragment.app.Fragment
 import com.example.sawit.R
+import com.example.sawit.model.PanenData
+import com.example.sawit.utils.PanenManager
+import java.text.SimpleDateFormat
 import java.util.Calendar
-
+import java.util.Locale
 
 class CatatPanenFragment : Fragment() {
-    private lateinit var etTanggalPanen: EditText
+
+    private lateinit var btnBack: ImageView
     private lateinit var layoutTanggalPanen: RelativeLayout
+    private lateinit var etTanggalPanen: EditText
     private lateinit var etLokasi: EditText
     private lateinit var etTBSMatang: EditText
     private lateinit var etTBSTidakMatang: EditText
     private lateinit var etTBSKelewatMatang: EditText
-    private lateinit var btnBack: ImageView
     private lateinit var btnSubmit: LinearLayout
+
+    private lateinit var panenManager: PanenManager
+    private var kebunId: Int = 0
+    private var kebunData: com.example.sawit.model.KebunData? = null
+    private val calendar = Calendar.getInstance()
+
+    companion object {
+        private const val ARG_KEBUN_ID = "kebun_id"
+        private const val ARG_KEBUN_DATA = "kebun_data"
+
+        fun newInstance(kebunId: Int, kebunData: com.example.sawit.model.KebunData): CatatPanenFragment {
+            val fragment = CatatPanenFragment()
+            val args = Bundle()
+            args.putInt(ARG_KEBUN_ID, kebunId)
+            args.putParcelable(ARG_KEBUN_DATA, kebunData)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            kebunId = it.getInt(ARG_KEBUN_ID, 0)
+            kebunData = it.getParcelable(ARG_KEBUN_DATA)
+        }
+        panenManager = PanenManager.getInstance(requireContext())
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate layout fragment
         val rootView = inflater.inflate(R.layout.fragment_catat_panen, container, false)
 
-        // Initialize views
         initViews(rootView)
-
-        // Setup listeners
         setupListeners()
 
         return rootView
@@ -59,140 +82,160 @@ class CatatPanenFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        // Back button - untuk kembali ke fragment sebelumnya
         btnBack.setOnClickListener {
-            // Kembali ke fragment sebelumnya
             activity?.supportFragmentManager?.popBackStack()
         }
 
-        // Date picker for Tanggal Panen - klik pada layout
         layoutTanggalPanen.setOnClickListener {
             showDatePicker()
         }
 
-        // GPS location button
-        etLokasi.setOnClickListener {
-            getGPSLocation()
-        }
-
-        // Submit button
         btnSubmit.setOnClickListener {
             submitData()
         }
     }
 
     private fun showDatePicker() {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-
         val datePickerDialog = DatePickerDialog(
             requireContext(),
-            { _, selectedYear, selectedMonth, selectedDay ->
-                // Format: DD/MM/YYYY
-                val selectedDate = String.format("%02d/%02d/%d", selectedDay, selectedMonth + 1, selectedYear)
-                etTanggalPanen.setText(selectedDate)
+            { _, year, month, dayOfMonth ->
+                calendar.set(year, month, dayOfMonth)
+                updateDateDisplay()
             },
-            year, month, day
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
         )
-
         datePickerDialog.show()
     }
 
-    private fun getGPSLocation() {
-        // Implementasi GPS Location
-        // Untuk sementara menggunakan dummy data
-        // Anda bisa implementasikan dengan FusedLocationProviderClient
-
-        Toast.makeText(requireContext(), "Mendapatkan lokasi GPS...", Toast.LENGTH_SHORT).show()
-
-        // Contoh dummy location
-        etLokasi.setText("Latitude: -0.5333, Longitude: 101.4478")
-
-        // TODO: Implementasi real GPS
-        // Tambahkan permission di AndroidManifest.xml:
-        // <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-        // <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-        /* Contoh implementasi GPS real:
-        if (ContextCompat.checkSelfPermission(requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location ->
-                    location?.let {
-                        val locationText = "Latitude: ${it.latitude}, Longitude: ${it.longitude}"
-                        etLokasi.setText(locationText)
-                    }
-                }
-        } else {
-            // Request permission
-            requestPermissions(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                REQUEST_LOCATION_PERMISSION
-            )
-        }
-        */
+    private fun updateDateDisplay() {
+        val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID"))
+        etTanggalPanen.setText(dateFormat.format(calendar.time))
     }
 
     private fun submitData() {
-        // Validasi input
-        val tanggalPanen = etTanggalPanen.text.toString().trim()
-        val lokasi = etLokasi.text.toString().trim()
-        val tbsMatang = etTBSMatang.text.toString().trim()
-        val tbsTidakMatang = etTBSTidakMatang.text.toString().trim()
-        val tbsKelewatMatang = etTBSKelewatMatang.text.toString().trim()
+        android.util.Log.d("CatatPanen", "=== SUBMIT DATA START ===")
 
-        when {
-            tanggalPanen.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan pilih tanggal panen", Toast.LENGTH_SHORT).show()
-                return
-            }
-            lokasi.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan masukkan lokasi", Toast.LENGTH_SHORT).show()
-                return
-            }
-            tbsMatang.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan masukkan berat TBS Matang", Toast.LENGTH_SHORT).show()
-                return
-            }
-            tbsTidakMatang.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan masukkan berat TBS Tidak Matang", Toast.LENGTH_SHORT).show()
-                return
-            }
-            tbsKelewatMatang.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan masukkan berat TBS Kelewat Matang", Toast.LENGTH_SHORT).show()
-                return
-            }
+        // Validasi input
+        val tanggal = etTanggalPanen.text.toString().trim()
+        val lokasi = etLokasi.text.toString().trim()
+        val tbsMatangStr = etTBSMatang.text.toString().trim()
+        val tbsTidakMatangStr = etTBSTidakMatang.text.toString().trim()
+        val tbsKelewatMatangStr = etTBSKelewatMatang.text.toString().trim()
+
+        android.util.Log.d("CatatPanen", "Tanggal: $tanggal")
+        android.util.Log.d("CatatPanen", "Lokasi: $lokasi")
+
+        if (tanggal.isEmpty()) {
+            showToast("Pilih tanggal panen")
+            return
         }
 
-        // Proses submit data
-        // TODO: Simpan ke database atau kirim ke server
+        if (lokasi.isEmpty()) {
+            showToast("Masukkan lokasi")
+            return
+        }
 
-        // Contoh: Buat object data
-        /*
+        if (tbsMatangStr.isEmpty() && tbsTidakMatangStr.isEmpty() && tbsKelewatMatangStr.isEmpty()) {
+            showToast("Masukkan minimal satu data berat TBS")
+            return
+        }
+
+        // Konversi ke double (default 0 jika kosong)
+        val tbsMatang = tbsMatangStr.toDoubleOrNull() ?: 0.0
+        val tbsTidakMatang = tbsTidakMatangStr.toDoubleOrNull() ?: 0.0
+        val tbsKelewatMatang = tbsKelewatMatangStr.toDoubleOrNull() ?: 0.0
+
+        android.util.Log.d("CatatPanen", "TBS Matang: $tbsMatang kg")
+
+        // Hitung jumlah buah (estimasi: 1 buah = 10kg)
+        val jumlahMatang = (tbsMatang / 10).toInt()
+        val jumlahTidakMatang = (tbsTidakMatang / 10).toInt()
+        val jumlahKelewatMatang = (tbsKelewatMatang / 10).toInt()
+
+        // Buat object PanenData
         val panenData = PanenData(
-            tanggalPanen = tanggalPanen,
+            kebunId = kebunId,
+            tanggalPanen = tanggal,
             lokasi = lokasi,
-            tbsMatang = tbsMatang.toDouble(),
-            tbsTidakMatang = tbsTidakMatang.toDouble(),
-            tbsKelewatMatang = tbsKelewatMatang.toDouble()
+            tbsMatang = tbsMatang,
+            tbsTidakMatang = tbsTidakMatang,
+            tbsKelewatMatang = tbsKelewatMatang,
+            jumlahMatang = jumlahMatang,
+            jumlahTidakMatang = jumlahTidakMatang,
+            jumlahKelewatMatang = jumlahKelewatMatang,
+            hargaPerKg = 2000.0,
+            timestamp = System.currentTimeMillis()
         )
 
-        // Simpan ke database
-        // databaseHelper.insertPanen(panenData)
-        */
+        android.util.Log.d("CatatPanen", "PanenData created")
 
-        Toast.makeText(requireContext(), "Data berhasil disimpan!", Toast.LENGTH_SHORT).show()
+        // Simpan data
+        val isSaved = panenManager.savePanen(panenData)
 
-        // Kembali ke fragment sebelumnya
-        activity?.supportFragmentManager?.popBackStack()
+        android.util.Log.d("CatatPanen", "Is Saved: $isSaved")
+
+        if (isSaved) {
+            showToast("Data panen berhasil disimpan")
+
+            // Validasi kebunData
+            android.util.Log.d("CatatPanen", "KebunData: ${kebunData?.namaKebun}")
+            android.util.Log.d("CatatPanen", "KebunData null?: ${kebunData == null}")
+
+            if (kebunData == null) {
+                android.util.Log.e("CatatPanen", "ERROR: KebunData is NULL!")
+                showToast("Error: Data kebun tidak tersedia")
+                activity?.supportFragmentManager?.popBackStack()
+                return
+            }
+
+            // Ambil semua data panen untuk kebun ini
+            val panenList = panenManager.getPanenByKebunId(kebunId)
+            android.util.Log.d("CatatPanen", "PanenList size: ${panenList.size}")
+
+            // Navigate ke DetailLaporanFragment
+            android.util.Log.d("CatatPanen", "Calling navigateToDetailLaporan...")
+            navigateToDetailLaporan(kebunData!!, panenList)
+        } else {
+            android.util.Log.e("CatatPanen", "ERROR: Failed to save!")
+            showToast("Gagal menyimpan data panen")
+        }
+
+        android.util.Log.d("CatatPanen", "=== SUBMIT DATA END ===")
     }
 
-    companion object {
-        private const val REQUEST_LOCATION_PERMISSION = 1
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun navigateToDetailLaporan(
+        kebunData: com.example.sawit.model.KebunData,
+        panenList: List<PanenData>
+    ) {
+        android.util.Log.d("CatatPanen", "=== NAVIGATE START ===")
+        android.util.Log.d("CatatPanen", "Activity: $activity")
+        android.util.Log.d("CatatPanen", "FragmentManager: ${activity?.supportFragmentManager}")
+
+        try {
+            // Buat DetailLaporanFragment dengan data
+            val detailLaporanFragment = DetailLaporanFragment.newInstance(kebunData, panenList)
+            android.util.Log.d("CatatPanen", "DetailLaporanFragment created")
+
+            activity?.supportFragmentManager?.beginTransaction()?.apply {
+                android.util.Log.d("CatatPanen", "Transaction started")
+                replace(R.id.fragmentContainer, detailLaporanFragment)
+                android.util.Log.d("CatatPanen", "Replace called")
+                addToBackStack(null)
+                android.util.Log.d("CatatPanen", "AddToBackStack called")
+                commit()
+                android.util.Log.d("CatatPanen", "Commit called")
+            }
+
+            android.util.Log.d("CatatPanen", "=== NAVIGATE END ===")
+        } catch (e: Exception) {
+            android.util.Log.e("CatatPanen", "ERROR in navigation: ${e.message}", e)
+            showToast("Error: ${e.message}")
+        }
     }
 }

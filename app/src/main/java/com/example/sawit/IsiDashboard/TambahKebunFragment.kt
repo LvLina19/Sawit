@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RelativeLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
 import com.example.sawit.R
@@ -18,6 +17,7 @@ import com.example.sawit.utils.KebunManager
 import java.util.Calendar
 
 class TambahKebunFragment : Fragment() {
+
     private lateinit var btnBack: ImageView
     private lateinit var etNamaKebun: EditText
     private lateinit var etLuasLahan: EditText
@@ -26,21 +26,14 @@ class TambahKebunFragment : Fragment() {
     private lateinit var etJumlahTanaman: EditText
     private lateinit var etTahunTanam: EditText
     private lateinit var layoutTahunTanam: RelativeLayout
-
     private lateinit var btnMineral: CardView
     private lateinit var btnGambut: CardView
     private lateinit var btnMineralVolkanik: CardView
     private lateinit var btnMineralBerpasir: CardView
     private lateinit var btnSubmit: CardView
 
-    // TextViews untuk mengubah warna teks
-    private lateinit var tvMineral: TextView
-    private lateinit var tvGambut: TextView
-    private lateinit var tvMineralVolkanik: TextView
-    private lateinit var tvMineralBerpasir: TextView
-
-    private var selectedJenisTanah: String = "Mineral"
     private lateinit var kebunManager: KebunManager
+    private var selectedJenisTanah: String = "Mineral" // Default
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,6 +48,9 @@ class TambahKebunFragment : Fragment() {
         initViews(rootView)
         setupListeners()
 
+        // Set initial UI state sesuai dengan default selection
+        updateJenisTanahUI()
+
         return rootView
     }
 
@@ -67,22 +63,11 @@ class TambahKebunFragment : Fragment() {
         etJumlahTanaman = view.findViewById(R.id.etJumlahTanaman)
         etTahunTanam = view.findViewById(R.id.etTahunTanam)
         layoutTahunTanam = view.findViewById(R.id.layoutTahunTanam)
-
         btnMineral = view.findViewById(R.id.btnMineral)
         btnGambut = view.findViewById(R.id.btnGambut)
         btnMineralVolkanik = view.findViewById(R.id.btnMineralVolkanik)
         btnMineralBerpasir = view.findViewById(R.id.btnMineralBerpasir)
         btnSubmit = view.findViewById(R.id.btnSubmit)
-
-        // Initialize TextViews untuk mengubah warna teks
-        tvMineral = btnMineral.findViewById<TextView>(android.R.id.text1) ?:
-                btnMineral.getChildAt(0) as TextView
-        tvGambut = btnGambut.findViewById<TextView>(android.R.id.text1) ?:
-                btnGambut.getChildAt(0) as TextView
-        tvMineralVolkanik = btnMineralVolkanik.findViewById<TextView>(android.R.id.text1) ?:
-                btnMineralVolkanik.getChildAt(0) as TextView
-        tvMineralBerpasir = btnMineralBerpasir.findViewById<TextView>(android.R.id.text1) ?:
-                btnMineralBerpasir.getChildAt(0) as TextView
     }
 
     private fun setupListeners() {
@@ -91,35 +76,39 @@ class TambahKebunFragment : Fragment() {
             activity?.supportFragmentManager?.popBackStack()
         }
 
-        // Tahun Tanam picker
+        // Date picker untuk tahun tanam
         layoutTahunTanam.setOnClickListener {
-            showMonthYearPicker()
+            showDatePicker()
         }
 
         // Jenis Tanah Selection
         btnMineral.setOnClickListener {
-            selectJenisTanah("Mineral")
+            selectedJenisTanah = "Mineral"
+            updateJenisTanahUI()
         }
 
         btnGambut.setOnClickListener {
-            selectJenisTanah("Gambut")
+            selectedJenisTanah = "Gambut"
+            updateJenisTanahUI()
         }
 
         btnMineralVolkanik.setOnClickListener {
-            selectJenisTanah("Mineral Volkanik")
+            selectedJenisTanah = "Mineral Volkanik"
+            updateJenisTanahUI()
         }
 
         btnMineralBerpasir.setOnClickListener {
-            selectJenisTanah("Mineral Berpasir")
+            selectedJenisTanah = "Mineral Berpasir"
+            updateJenisTanahUI()
         }
 
         // Submit button
         btnSubmit.setOnClickListener {
-            submitData()
+            submitKebun()
         }
     }
 
-    private fun showMonthYearPicker() {
+    private fun showDatePicker() {
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
@@ -127,141 +116,148 @@ class TambahKebunFragment : Fragment() {
         val datePickerDialog = DatePickerDialog(
             requireContext(),
             { _, selectedYear, selectedMonth, _ ->
-                val monthNames = arrayOf(
-                    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-                )
-                val selectedDate = "${monthNames[selectedMonth]} $selectedYear"
-                etTahunTanam.setText(selectedDate)
+                val monthName = getMonthName(selectedMonth)
+                etTahunTanam.setText("$monthName $selectedYear")
             },
-            year, month, 1
+            year,
+            month,
+            1
         )
 
         datePickerDialog.show()
     }
 
-    private fun selectJenisTanah(jenisTanah: String) {
-        selectedJenisTanah = jenisTanah
+    private fun getMonthName(month: Int): String {
+        val months = arrayOf(
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        )
+        return months[month]
+    }
 
-        // Warna unselected (hijau muda) dan selected (hijau tua)
-        val colorUnselected = android.graphics.Color.parseColor("#E8F5E9")
-        val colorSelected = android.graphics.Color.parseColor("#4CAF50")
-        val textColorUnselected = android.graphics.Color.parseColor("#4CAF50")
-        val textColorSelected = android.graphics.Color.parseColor("#FFFFFF")
+    private fun updateJenisTanahUI() {
+        // Reset semua tombol ke state tidak aktif (hijau muda)
+        setButtonUnselected(btnMineral)
+        setButtonUnselected(btnGambut)
+        setButtonUnselected(btnMineralVolkanik)
+        setButtonUnselected(btnMineralBerpasir)
 
-        // Reset all buttons to unselected state
-        btnMineral.setCardBackgroundColor(colorUnselected)
-        btnGambut.setCardBackgroundColor(colorUnselected)
-        btnMineralVolkanik.setCardBackgroundColor(colorUnselected)
-        btnMineralBerpasir.setCardBackgroundColor(colorUnselected)
-
-        // Reset all text colors to unselected
-        tvMineral.setTextColor(textColorUnselected)
-        tvGambut.setTextColor(textColorUnselected)
-        tvMineralVolkanik.setTextColor(textColorUnselected)
-        tvMineralBerpasir.setTextColor(textColorUnselected)
-
-        // Reset text style
-        tvMineral.setTypeface(null, android.graphics.Typeface.NORMAL)
-        tvGambut.setTypeface(null, android.graphics.Typeface.NORMAL)
-        tvMineralVolkanik.setTypeface(null, android.graphics.Typeface.NORMAL)
-        tvMineralBerpasir.setTypeface(null, android.graphics.Typeface.NORMAL)
-
-        // Set selected button
-        when (jenisTanah) {
-            "Mineral" -> {
-                btnMineral.setCardBackgroundColor(colorSelected)
-                tvMineral.setTextColor(textColorSelected)
-                tvMineral.setTypeface(null, android.graphics.Typeface.BOLD)
-            }
-            "Gambut" -> {
-                btnGambut.setCardBackgroundColor(colorSelected)
-                tvGambut.setTextColor(textColorSelected)
-                tvGambut.setTypeface(null, android.graphics.Typeface.BOLD)
-            }
-            "Mineral Volkanik" -> {
-                btnMineralVolkanik.setCardBackgroundColor(colorSelected)
-                tvMineralVolkanik.setTextColor(textColorSelected)
-                tvMineralVolkanik.setTypeface(null, android.graphics.Typeface.BOLD)
-            }
-            "Mineral Berpasir" -> {
-                btnMineralBerpasir.setCardBackgroundColor(colorSelected)
-                tvMineralBerpasir.setTextColor(textColorSelected)
-                tvMineralBerpasir.setTypeface(null, android.graphics.Typeface.BOLD)
-            }
+        // Set tombol yang dipilih ke state aktif (hijau tua)
+        when (selectedJenisTanah) {
+            "Mineral" -> setButtonSelected(btnMineral)
+            "Gambut" -> setButtonSelected(btnGambut)
+            "Mineral Volkanik" -> setButtonSelected(btnMineralVolkanik)
+            "Mineral Berpasir" -> setButtonSelected(btnMineralBerpasir)
         }
     }
 
-    private fun submitData() {
+    private fun setButtonSelected(button: CardView) {
+        // Warna AKTIF: Background hijau tua (#4CAF50), text putih, bold
+        button.setCardBackgroundColor(0xFF4CAF50.toInt())
+        val textView = button.getChildAt(0) as? android.widget.TextView
+        textView?.apply {
+            setTextColor(0xFFFFFFFF.toInt())
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+    }
+
+    private fun setButtonUnselected(button: CardView) {
+        // Warna TIDAK AKTIF: Background hijau muda (#E8F5E9), text hijau (#4CAF50), normal
+        button.setCardBackgroundColor(0xFFE8F5E9.toInt())
+        val textView = button.getChildAt(0) as? android.widget.TextView
+        textView?.apply {
+            setTextColor(0xFF4CAF50.toInt())
+            setTypeface(null, android.graphics.Typeface.NORMAL)
+        }
+    }
+
+    private fun submitKebun() {
+        // Validasi input
         val namaKebun = etNamaKebun.text.toString().trim()
-        val luasLahan = etLuasLahan.text.toString().trim()
+        val luasLahanStr = etLuasLahan.text.toString().trim()
         val lokasiKebun = etLokasiKebun.text.toString().trim()
         val jenisBibit = etJenisBibit.text.toString().trim()
-        val jumlahTanaman = etJumlahTanaman.text.toString().trim()
+        val jumlahTanamanStr = etJumlahTanaman.text.toString().trim()
         val tahunTanam = etTahunTanam.text.toString().trim()
 
-        // Validasi
-        when {
-            namaKebun.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan masukkan nama kebun", Toast.LENGTH_SHORT).show()
-                return
-            }
-            luasLahan.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan masukkan luas lahan", Toast.LENGTH_SHORT).show()
-                return
-            }
-            lokasiKebun.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan pilih lokasi kebun", Toast.LENGTH_SHORT).show()
-                return
-            }
-            jenisBibit.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan masukkan jenis bibit", Toast.LENGTH_SHORT).show()
-                return
-            }
-            tahunTanam.isEmpty() -> {
-                Toast.makeText(requireContext(), "Silakan pilih tahun tanam", Toast.LENGTH_SHORT).show()
-                return
-            }
-        }
-
-        // Validasi angka
-        val luasLahanValue = luasLahan.toDoubleOrNull()
-        if (luasLahanValue == null) {
-            Toast.makeText(requireContext(), "Luas lahan harus berupa angka yang valid", Toast.LENGTH_SHORT).show()
+        // Validasi field wajib
+        if (namaKebun.isEmpty()) {
+            showToast("Nama kebun harus diisi")
             return
         }
 
-        val jumlahTanamanValue = if (jumlahTanaman.isNotEmpty()) {
-            jumlahTanaman.toIntOrNull() ?: 0
+        if (luasLahanStr.isEmpty()) {
+            showToast("Luas lahan harus diisi")
+            return
+        }
+
+        if (lokasiKebun.isEmpty()) {
+            showToast("Lokasi kebun harus diisi")
+            return
+        }
+
+        if (jenisBibit.isEmpty()) {
+            showToast("Jenis bibit harus diisi")
+            return
+        }
+
+        if (tahunTanam.isEmpty()) {
+            showToast("Tahun tanam harus diisi")
+            return
+        }
+
+        // Parse data
+        val luasLahan = luasLahanStr.toDoubleOrNull() ?: 0.0
+        val jumlahTanaman = if (jumlahTanamanStr.isNotEmpty()) {
+            jumlahTanamanStr.toIntOrNull() ?: 0
         } else {
             0
         }
 
-        // Buat object KebunData
+        // Create KebunData object
         val kebunData = KebunData(
             namaKebun = namaKebun,
-            luasLahan = luasLahanValue,
+            luasLahan = luasLahan,
             lokasiKebun = lokasiKebun,
             jenisBibit = jenisBibit,
-            jumlahTanaman = jumlahTanamanValue,
+            jumlahTanaman = jumlahTanaman,
             tahunTanam = tahunTanam,
             jenisTanah = selectedJenisTanah
         )
 
-        // Simpan ke KebunManager
+        // Save to KebunManager
         val isSaved = kebunManager.saveKebun(kebunData)
 
         if (isSaved) {
-            Toast.makeText(requireContext(), "Data kebun berhasil disimpan!", Toast.LENGTH_SHORT).show()
+            showToast("Kebun berhasil ditambahkan")
 
-            // Pindah ke LihatKebunFragment
+            // Clear form
+            clearForm()
+
+            // Navigate ke LihatKebunFragment
             navigateToLihatKebun()
         } else {
-            Toast.makeText(requireContext(), "Gagal menyimpan data kebun", Toast.LENGTH_SHORT).show()
+            showToast("Gagal menambahkan kebun")
         }
     }
 
+    private fun clearForm() {
+        etNamaKebun.text?.clear()
+        etLuasLahan.text?.clear()
+        etLokasiKebun.text?.clear()
+        etJenisBibit.text?.clear()
+        etJumlahTanaman.text?.clear()
+        etTahunTanam.text?.clear()
+        selectedJenisTanah = "Mineral"
+        updateJenisTanahUI()
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
     private fun navigateToLihatKebun() {
+        // Opsi 1: Replace dengan fragment baru
         val lihatKebunFragment = LihatKebunFragment()
 
         activity?.supportFragmentManager?.beginTransaction()?.apply {
@@ -269,5 +265,8 @@ class TambahKebunFragment : Fragment() {
             addToBackStack(null)
             commit()
         }
+
+        // Opsi 2: Jika ingin pop back ke fragment sebelumnya
+        // activity?.supportFragmentManager?.popBackStack()
     }
 }

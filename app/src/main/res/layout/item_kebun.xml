@@ -4,12 +4,12 @@
     android:id="@+id/cardKebun"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
     android:layout_marginBottom="12dp"
-    android:clickable="true"
-    android:focusable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="16dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,104 +17,100 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header with nama kebun and delete button -->
+        <!-- Top Section: Image + Info + Delete -->
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/tvNamaKebun"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <!-- Image Kebun -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardImage"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
                 android:layout_alignParentStart="true"
-                android:layout_toStartOf="@id/btnDelete"
-                android:text="Nama Kebun"
-                android:textColor="#000000"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
 
+                <ImageView
+                    android:id="@+id/ivKebunImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/gambar_lahan_sawit"
+                    android:background="#E8F5E9" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Delete Button -->
             <ImageView
                 android:id="@+id/btnDelete"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
+                android:layout_alignParentTop="true"
                 android:src="@android:drawable/ic_menu_delete"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
                 app:tint="#F44336" />
+
+            <!-- Info Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/cardImage"
+                android:layout_toStartOf="@id/btnDelete"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical">
+
+                <!-- Nama Kebun -->
+                <TextView
+                    android:id="@+id/tvNamaKebun"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Kebun Sawit Intan"
+                    android:textColor="#2E7D32"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <!-- Lokasi Kebun -->
+                <TextView
+                    android:id="@+id/tvLokasiKebun"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Bekalar, Kandis, Siak, Riau."
+                    android:textColor="#9E9E9E"
+                    android:textSize="13sp"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+            </LinearLayout>
         </RelativeLayout>
 
-        <!-- Divider -->
-        <View
+        <!-- Lihat Informasi Button -->
+        <LinearLayout
+            android:id="@+id/btnLihatInformasi"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:background="#E0E0E0" />
-
-        <!-- Luas Lahan -->
-        <TextView
-            android:id="@+id/tvLuasLahan"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="Luas: 100 ha"
-            android:textColor="#333333"
-            android:textSize="14sp" />
+            android:layout_marginTop="16dp"
+            android:background="@drawable/btn_outline_green"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:orientation="vertical"
+            android:padding="14dp">
 
-        <!-- Lokasi Kebun -->
-        <TextView
-            android:id="@+id/tvLokasiKebun"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="Lokasi: Pekanbaru"
-            android:textColor="#333333"
-            android:textSize="14sp" />
-
-        <!-- Jenis Bibit -->
-        <TextView
-            android:id="@+id/tvJenisBibit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="Bibit: Kelapa Sawit"
-            android:textColor="#333333"
-            android:textSize="14sp" />
-
-        <!-- Jumlah Tanaman -->
-        <TextView
-            android:id="@+id/tvJumlahTanaman"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="Jumlah: 5000 tanaman"
-            android:textColor="#333333"
-            android:textSize="14sp" />
-
-        <!-- Tahun Tanam -->
-        <TextView
-            android:id="@+id/tvTahunTanam"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="Tahun Tanam: Januari 2020"
-            android:textColor="#333333"
-            android:textSize="14sp" />
-
-        <!-- Jenis Tanah -->
-        <TextView
-            android:id="@+id/tvJenisTanah"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tanah: Mineral"
-            android:textColor="#4CAF50"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Lihat Informasi"
+                android:textColor="#4CAF50"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>
