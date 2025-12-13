@@ -26,8 +26,21 @@ class KebunManager private constructor(context: Context) {
         @Volatile
         private var INSTANCE: KebunManager? = null
 
+        @Volatile
+        private var persistenceEnabled = false
+
         fun getInstance(context: Context): KebunManager {
             return INSTANCE ?: synchronized(this) {
+                // Enable persistence hanya sekali di sini
+                if (!persistenceEnabled) {
+                    try {
+                        FirebaseDatabase.getInstance().setPersistenceEnabled(true)
+                        persistenceEnabled = true
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Persistence already enabled")
+                    }
+                }
+
                 INSTANCE ?: KebunManager(context.applicationContext).also {
                     INSTANCE = it
                 }
@@ -35,14 +48,6 @@ class KebunManager private constructor(context: Context) {
         }
     }
 
-    init {
-        // Enable offline persistence
-        try {
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true)
-        } catch (e: Exception) {
-            Log.e(TAG, "Persistence already enabled", e)
-        }
-    }
 
     /**
      * Simpan data kebun baru ke Firebase

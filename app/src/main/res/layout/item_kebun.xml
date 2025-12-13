@@ -17,17 +17,18 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Top Section: Image + Info + Delete -->
-        <RelativeLayout
+        <!-- Top Section: Image + Info + Action Buttons -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="top">
 
             <!-- Image Kebun -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardImage"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_alignParentStart="true"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
 
@@ -40,28 +41,14 @@
                     android:background="#E8F5E9" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Delete Button -->
-            <ImageView
-                android:id="@+id/btnDelete"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentTop="true"
-                android:src="@android:drawable/ic_menu_delete"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
-                app:tint="#F44336" />
-
             <!-- Info Section -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/cardImage"
-                android:layout_toStartOf="@id/btnDelete"
+                android:layout_weight="1"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
                 android:orientation="vertical">
 
                 <!-- Nama Kebun -->
@@ -83,12 +70,44 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Bekalar, Kandis, Siak, Riau."
-                    android:textColor="#9E9E9E"
+                    android:textColor="#BDBDBD"
                     android:textSize="13sp"
                     android:maxLines="2"
                     android:ellipsize="end" />
             </LinearLayout>
-        </RelativeLayout>
+
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"
+                android:gravity="center">
+
+                <!-- Tombol Edit -->
+                <ImageView
+                    android:id="@+id/btnEdit"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_edit"
+                    android:padding="6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Edit Kebun"
+                    app:tint="#2196F3"/>
+
+                <!-- Tombol Delete -->
+                <ImageView
+                    android:id="@+id/btnDelete"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_delete"
+                    android:padding="6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Hapus Kebun"
+                    app:tint="#F44336"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
 
         <!-- Lihat Informasi Button -->
         <LinearLayout

@@ -4,23 +4,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sawit.R
 import com.example.sawit.model.KebunData
 
 class KebunAdapter(
     private val onItemClick: (KebunData) -> Unit,
+    private val onEditClick: (KebunData) -> Unit,
     private val onDeleteClick: (KebunData) -> Unit
-) : RecyclerView.Adapter<KebunAdapter.KebunViewHolder>() {
-
-    private var kebunList: List<KebunData> = emptyList()
-
-    fun submitList(list: List<KebunData>) {
-        kebunList = list
-        notifyDataSetChanged()
-    }
+) : ListAdapter<KebunData, KebunAdapter.KebunViewHolder>(KebunDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): KebunViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -29,32 +26,51 @@ class KebunAdapter(
     }
 
     override fun onBindViewHolder(holder: KebunViewHolder, position: Int) {
-        holder.bind(kebunList[position])
+        val kebun = getItem(position)
+        holder.bind(kebun)
     }
 
-    override fun getItemCount(): Int = kebunList.size
-
     inner class KebunViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val cardKebun: CardView = itemView.findViewById(R.id.cardKebun)
         private val ivKebunImage: ImageView = itemView.findViewById(R.id.ivKebunImage)
         private val tvNamaKebun: TextView = itemView.findViewById(R.id.tvNamaKebun)
         private val tvLokasiKebun: TextView = itemView.findViewById(R.id.tvLokasiKebun)
-        private val btnLihatInformasi: View = itemView.findViewById(R.id.btnLihatInformasi)
+        private val btnEdit: ImageView = itemView.findViewById(R.id.btnEdit)
         private val btnDelete: ImageView = itemView.findViewById(R.id.btnDelete)
+        private val btnLihatInformasi: LinearLayout = itemView.findViewById(R.id.btnLihatInformasi)
 
-        fun bind(kebunData: KebunData) {
-            tvNamaKebun.text = kebunData.namaKebun
-            tvLokasiKebun.text = kebunData.lokasiKebun
+        fun bind(kebun: KebunData) {
+            tvNamaKebun.text = kebun.namaKebun
+            tvLokasiKebun.text = kebun.lokasiKebun
 
-            // Set placeholder image (nanti bisa diganti dengan load image dari URL)
-            ivKebunImage.setImageResource(R.drawable.ic_kebun_placeholder)
-
-            btnLihatInformasi.setOnClickListener {
-                onItemClick(kebunData)
+            // Set click listeners
+            btnEdit.setOnClickListener {
+                android.util.Log.d("KebunAdapter", "Edit button clicked for: ${kebun.namaKebun}")
+                onEditClick(kebun)
             }
 
             btnDelete.setOnClickListener {
-                onDeleteClick(kebunData)
+                onDeleteClick(kebun)
             }
+
+            btnLihatInformasi.setOnClickListener {
+                onItemClick(kebun)
+            }
+
+            // Optional: Click pada card juga bisa membuka detail
+            cardKebun.setOnClickListener {
+                onItemClick(kebun)
+            }
+        }
+    }
+
+    class KebunDiffCallback : DiffUtil.ItemCallback<KebunData>() {
+        override fun areItemsTheSame(oldItem: KebunData, newItem: KebunData): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: KebunData, newItem: KebunData): Boolean {
+            return oldItem == newItem
         }
     }
 }

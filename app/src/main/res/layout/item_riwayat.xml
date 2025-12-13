@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Image Placeholder -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardImage"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:strokeColor="@color/gray_light"
+            app:strokeWidth="1dp">
+
+            <ImageView
+                android:id="@+id/ivRiwayat"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Gambar Deteksi"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_launcher_background" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Jenis Buah Badge -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            app:cardBackgroundColor="@color/green_light"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toEndOf="@id/cardImage"
+            app:layout_constraintTop_toTopOf="@id/cardImage">
+
+            <TextView
+                android:id="@+id/tvJenisBuah"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="Buah Matang"
+                android:textColor="@color/green_dark"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Lokasi -->
+        <TextView
+            android:id="@+id/tvLokasi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
+            android:text="Riau"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/tvTanggal"
+            app:layout_constraintStart_toEndOf="@id/cardImage"
+            app:layout_constraintTop_toBottomOf="@id/cardBadge" />
+
+        <!-- Tanggal -->
+        <TextView
+            android:id="@+id/tvTanggal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="25/11/2024"
+            android:textColor="@color/gray_text"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@id/tvLokasi"
+            app:layout_constraintEnd_toStartOf="@id/btnDelete"
+            app:layout_constraintTop_toTopOf="@id/tvLokasi" />
+
+        <!-- Kepercayaan -->
+        <TextView
+            android:id="@+id/tvKepercayaan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:text="Kepercayaan: 94%"
+            android:textColor="@color/gray_text"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@id/cardImage"
+            app:layout_constraintTop_toBottomOf="@id/tvLokasi" />
+
+        <!-- Area -->
+        <TextView
+            android:id="@+id/tvArea"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Area: 2.5 ha"
+            android:textColor="@color/gray_text"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@id/tvKepercayaan"
+            app:layout_constraintEnd_toStartOf="@id/btnDelete"
+            app:layout_constraintTop_toTopOf="@id/tvKepercayaan" />
+
+        <!-- Delete Button -->
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Hapus"
+            android:src="@drawable/ic_delete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/red_danger" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
