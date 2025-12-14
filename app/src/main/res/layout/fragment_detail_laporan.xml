@@ -76,7 +76,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
-                            android:src="@drawable/ic_kebun_placeholder"
+                            android:src="@drawable/gambar_lahan_sawit"
                             android:background="#E8F5E9" />
                     </androidx.cardview.widget.CardView>
 

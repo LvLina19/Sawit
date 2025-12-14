@@ -76,33 +76,53 @@ class PanenManager private constructor(context: Context) {
      * Ambil semua data panen dari Firebase
      */
     fun getAllPanen(onComplete: (List<PanenData>?) -> Unit) {
+        Log.d(TAG, "═══════════════════════════════════════")
+        Log.d(TAG, "🔍 GETTING ALL PANEN FROM FIREBASE")
+
         panenRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d(TAG, "")
+                Log.d(TAG, "📡 FIREBASE RESPONSE:")
+                Log.d(TAG, "   Total children: ${snapshot.childrenCount}")
+
                 val panenList = mutableListOf<PanenData>()
                 panenKeyMap.clear()
 
                 try {
+                    var index = 0
                     for (childSnapshot in snapshot.children) {
                         val panen = childSnapshot.getValue(PanenData::class.java)
+
                         if (panen != null) {
                             panenList.add(panen)
                             childSnapshot.key?.let { key ->
                                 panenKeyMap[panen.id] = key
                             }
+
+                            Log.d(TAG, "   [$index] ID: ${panen.id} | KebunID: ${panen.kebunId} | Tanggal: ${panen.tanggalPanen} | Berat: ${panen.getTotalBerat()} Kg")
+                        } else {
+                            Log.w(TAG, "   [$index] NULL panen for key: ${childSnapshot.key}")
                         }
+
+                        index++
                     }
 
                     cachedPanenList = panenList
-                    Log.d(TAG, "Loaded ${panenList.size} panen from Firebase")
+                    Log.d(TAG, "")
+                    Log.d(TAG, "📊 LOADED ${panenList.size} total panen from Firebase")
+                    Log.d(TAG, "═══════════════════════════════════════")
+
                     onComplete(panenList)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error parsing panen data", e)
+                    Log.e(TAG, "❌ ERROR parsing panen data", e)
+                    Log.d(TAG, "═══════════════════════════════════════")
                     onComplete(cachedPanenList.ifEmpty { null })
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Error loading panen: ${error.message}")
+                Log.e(TAG, "❌ ERROR loading panen: ${error.message}")
+                Log.d(TAG, "═══════════════════════════════════════")
                 onComplete(if (cachedPanenList.isNotEmpty()) cachedPanenList else null)
             }
         })
@@ -112,35 +132,66 @@ class PanenManager private constructor(context: Context) {
      * Ambil data panen berdasarkan kebun ID
      */
     fun getPanenByKebunId(kebunId: Int, onComplete: (List<PanenData>) -> Unit) {
+        Log.d(TAG, "═══════════════════════════════════════")
+        Log.d(TAG, "🔍 QUERYING PANEN BY KEBUN ID")
+        Log.d(TAG, "   Target Kebun ID: $kebunId")
+        Log.d(TAG, "   Query: orderByChild('kebunId').equalTo($kebunId)")
+
         panenRef.orderByChild("kebunId").equalTo(kebunId.toDouble())
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.d(TAG, "")
+                    Log.d(TAG, "📡 FIREBASE RESPONSE:")
+                    Log.d(TAG, "   Snapshot exists: ${snapshot.exists()}")
+                    Log.d(TAG, "   Children count: ${snapshot.childrenCount}")
+
                     val panenList = mutableListOf<PanenData>()
 
                     try {
+                        var index = 0
                         for (childSnapshot in snapshot.children) {
+                            Log.d(TAG, "")
+                            Log.d(TAG, "   Processing child [$index]:")
+                            Log.d(TAG, "      Firebase Key: ${childSnapshot.key}")
+
                             val panen = childSnapshot.getValue(PanenData::class.java)
+
                             if (panen != null) {
+                                Log.d(TAG, "      ✅ Panen ID: ${panen.id}")
+                                Log.d(TAG, "      ✅ Kebun ID: ${panen.kebunId}")
+                                Log.d(TAG, "      ✅ Tanggal: ${panen.tanggalPanen}")
+                                Log.d(TAG, "      ✅ Total Berat: ${panen.getTotalBerat()} Kg")
+
                                 panenList.add(panen)
                                 childSnapshot.key?.let { key ->
                                     panenKeyMap[panen.id] = key
                                 }
+                            } else {
+                                Log.e(TAG, "      ❌ NULL panen object!")
                             }
+
+                            index++
                         }
 
                         // Sort by timestamp descending (terbaru dulu)
                         panenList.sortByDescending { it.timestamp }
 
-                        Log.d(TAG, "Found ${panenList.size} panen for kebun ID: $kebunId")
+                        Log.d(TAG, "")
+                        Log.d(TAG, "📊 QUERY RESULT:")
+                        Log.d(TAG, "   Found ${panenList.size} panen for kebun ID: $kebunId")
+                        Log.d(TAG, "═══════════════════════════════════════")
+
                         onComplete(panenList)
                     } catch (e: Exception) {
-                        Log.e(TAG, "Error getting panen by kebun ID", e)
+                        Log.e(TAG, "❌ ERROR getting panen by kebun ID", e)
+                        Log.d(TAG, "═══════════════════════════════════════")
                         onComplete(emptyList())
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e(TAG, "Error in getPanenByKebunId: ${error.message}")
+                    Log.e(TAG, "❌ DATABASE ERROR: ${error.message}")
+                    Log.d(TAG, "═══════════════════════════════════════")
                     onComplete(emptyList())
                 }
             })
@@ -417,142 +468,3 @@ class PanenManager private constructor(context: Context) {
         return cachedPanenList.count { it.kebunId == kebunId }
     }
 }
-
-//package com.example.sawit.utils
-//
-//import android.content.Context
-//import android.content.SharedPreferences
-//import com.example.sawit.model.PanenData
-//import com.google.gson.Gson
-//import com.google.gson.reflect.TypeToken
-//
-//class PanenManager private constructor(context: Context) {
-//
-//    private val sharedPreferences: SharedPreferences
-//    private val gson: Gson = Gson()
-//
-//    companion object {
-//        private const val PREF_NAME = "PanenPreferences"
-//        private const val KEY_PANEN_LIST = "panen_list"
-//        private const val KEY_LAST_ID = "last_id"
-//
-//        @Volatile
-//        private var INSTANCE: PanenManager? = null
-//
-//        fun getInstance(context: Context): PanenManager {
-//            return INSTANCE ?: synchronized(this) {
-//                INSTANCE ?: PanenManager(context.applicationContext).also {
-//                    INSTANCE = it
-//                }
-//            }
-//        }
-//    }
-//
-//    init {
-//        sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-//    }
-//
-//    /**
-//     * Simpan data panen baru
-//     */
-//    fun savePanen(panenData: PanenData): Boolean {
-//        return try {
-//            val panenList = getAllPanen().toMutableList()
-//            val newId = getNextId()
-//            val panenWithId = panenData.copy(id = newId)
-//            panenList.add(panenWithId)
-//            savePanenList(panenList)
-//            saveLastId(newId)
-//            true
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            false
-//        }
-//    }
-//
-//    /**
-//     * Ambil semua data panen
-//     */
-//    fun getAllPanen(): List<PanenData> {
-//        return try {
-//            val json = sharedPreferences.getString(KEY_PANEN_LIST, null)
-//            if (json != null) {
-//                val type = object : TypeToken<List<PanenData>>() {}.type
-//                gson.fromJson(json, type)
-//            } else {
-//                emptyList()
-//            }
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            emptyList()
-//        }
-//    }
-//
-//    /**
-//     * Ambil panen berdasarkan kebun ID
-//     */
-//    fun getPanenByKebunId(kebunId: Int): List<PanenData> {
-//        return getAllPanen().filter { it.kebunId == kebunId }
-//    }
-//
-//    /**
-//     * Ambil total pendapatan per kebun
-//     */
-//    fun getTotalPendapatanByKebun(kebunId: Int): Double {
-//        return getPanenByKebunId(kebunId).sumOf { it.getTotalPendapatan() }
-//    }
-//
-//    /**
-//     * Ambil data untuk grafik (per bulan)
-//     */
-//    fun getGrafikData(kebunId: Int): Map<String, Double> {
-//        return getPanenByKebunId(kebunId)
-//            .groupBy { it.getBulan() }
-//            .mapValues { entry -> entry.value.sumOf { it.getTotalPendapatan() } }
-//    }
-//
-//    /**
-//     * Delete panen
-//     */
-//    fun deletePanen(id: Int): Boolean {
-//        return try {
-//            val panenList = getAllPanen().toMutableList()
-//            val removed = panenList.removeIf { it.id == id }
-//            if (removed) {
-//                savePanenList(panenList)
-//            }
-//            removed
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            false
-//        }
-//    }
-//
-//    /**
-//     * Clear all panen data
-//     */
-//    fun clearAllPanen(): Boolean {
-//        return try {
-//            sharedPreferences.edit().clear().apply()
-//            true
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            false
-//        }
-//    }
-//
-//    // Private helper functions
-//    private fun savePanenList(panenList: List<PanenData>) {
-//        val json = gson.toJson(panenList)
-//        sharedPreferences.edit().putString(KEY_PANEN_LIST, json).apply()
-//    }
-//
-//    private fun getNextId(): Int {
-//        val lastId = sharedPreferences.getInt(KEY_LAST_ID, 0)
-//        return lastId + 1
-//    }
-//
-//    private fun saveLastId(id: Int) {
-//        sharedPreferences.edit().putInt(KEY_LAST_ID, id).apply()
-//    }
-//}
