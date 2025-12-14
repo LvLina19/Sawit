@@ -1,5 +1,6 @@
 package com.example.sawit.IsiDashboard
 
+import ai.onnxruntime.OnnxTensor
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
@@ -22,8 +23,10 @@ import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
 import com.example.sawit.R
 import com.example.sawit.ml.OnnxModelHelper
+import com.example.sawit.ml.PredictionResult
 import kotlinx.coroutines.launch
 import java.io.InputStream
+import java.nio.FloatBuffer
 
 class DeteksiFragment : Fragment() {
 
@@ -164,6 +167,12 @@ class DeteksiFragment : Fragment() {
             try {
                 val result = onnxHelper?.predictMaturity(bitmap)
 
+                // DEBUG: Log hasil prediksi
+                android.util.Log.d("DeteksiFragment", "Label: ${result?.label}")
+                android.util.Log.d("DeteksiFragment", "Confidence RAW: ${result?.confidence}")
+                android.util.Log.d("DeteksiFragment", "Confidence x100: ${result?.confidence?.times(100)}")
+                android.util.Log.d("DeteksiFragment", "Error: ${result?.error}")
+
                 // Kembalikan state button
                 btnCekKematangan.isEnabled = true
                 btnCekKematangan.text = "Cek Kematangan"
@@ -178,6 +187,7 @@ class DeteksiFragment : Fragment() {
                     ).show()
                 }
             } catch (e: Exception) {
+                android.util.Log.e("DeteksiFragment", "Exception: ${e.message}", e)
                 btnCekKematangan.isEnabled = true
                 btnCekKematangan.text = "Cek Kematangan"
                 Toast.makeText(
@@ -189,12 +199,19 @@ class DeteksiFragment : Fragment() {
         }
     }
 
+    // Tambahkan fungsi softmax
+    private fun softmax(logits: FloatArray): FloatArray {
+        val maxLogit = logits.maxOrNull() ?: 0f
+        val exps = logits.map { kotlin.math.exp((it - maxLogit).toDouble()).toFloat() }
+        val sumExps = exps.sum()
+        return exps.map { it / sumExps }.toFloatArray()
+    }
     private fun showResult(result: com.example.sawit.ml.PredictionResult) {
         // Update result label
         tvResultLabel.text = result.label
 
-        // Update confidence
-        val confidenceInt = result.confidence.toInt()
+        // Update confidence - TIDAK PERLU DIKALI 100 LAGI!
+        val confidenceInt = result.confidence.toInt() // Langsung toInt() saja
         tvConfidence.text = "$confidenceInt%"
         progressConfidence.progress = confidenceInt
 
@@ -205,9 +222,7 @@ class DeteksiFragment : Fragment() {
             .alpha(1f)
             .setDuration(300)
             .start()
-    }
-
-    private fun resetDetection() {
+    }    private fun resetDetection() {
         resultContainer.visibility = View.GONE
         btnCekKematangan.isEnabled = false
         btnCekKematangan.alpha = 0.5f

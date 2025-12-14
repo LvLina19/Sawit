@@ -2,6 +2,7 @@ package com.example.sawit
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -17,6 +18,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.GoogleAuthProvider
 
 class login : AppCompatActivity() {
@@ -33,6 +36,10 @@ class login : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var tvRegister: TextView
     private lateinit var Tv_Lupa_Password: TextView
+
+    companion object {
+        private const val TAG = "LoginActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +77,7 @@ class login : AppCompatActivity() {
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // Setup Activity Result Launcher (cara baru, bukan onActivityResult)
+        // Setup Activity Result Launcher
         googleSignInLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -81,6 +88,7 @@ class login : AppCompatActivity() {
                     firebaseAuthWithGoogle(account.idToken!!)
                 } catch (e: ApiException) {
                     showLoading(false)
+                    Log.e(TAG, "Google sign in failed", e)
                     Toast.makeText(
                         this,
                         "Login Google gagal: ${e.message}",
@@ -106,14 +114,12 @@ class login : AppCompatActivity() {
 
         // Navigasi ke Register
         tvRegister.setOnClickListener {
-            // Ganti RegisterActivity dengan nama activity register Anda
-             startActivity(Intent(this, regris::class.java))
+            startActivity(Intent(this, regris::class.java))
         }
+
         Tv_Lupa_Password.setOnClickListener {
             startActivity(Intent(this, LupaPassword_activity::class.java))
-
         }
-
     }
 
     private fun loginWithEmail() {
@@ -128,12 +134,19 @@ class login : AppCompatActivity() {
         // Tampilkan loading
         showLoading(true)
 
+        // Log untuk debugging
+        Log.d(TAG, "Attempting login with email: $email")
+
         // Login ke Firebase
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 showLoading(false)
 
                 if (task.isSuccessful) {
+                    // Login berhasil
+                    val user = auth.currentUser
+                    Log.d(TAG, "Login successful for user: ${user?.uid}")
+
                     Toast.makeText(
                         this,
                         "Login Berhasil!",
@@ -141,17 +154,50 @@ class login : AppCompatActivity() {
                     ).show()
                     goToMain()
                 } else {
-                    val errorMessage = when {
-                        task.exception?.message?.contains("password") == true ->
-                            "Password salah"
-                        task.exception?.message?.contains("user") == true ->
-                            "Email tidak terdaftar"
-                        task.exception?.message?.contains("network") == true ->
-                            "Tidak ada koneksi internet"
-                        else -> "Login gagal: ${task.exception?.message}"
+                    // Login gagal - handle berbagai jenis error
+                    val exception = task.exception
+                    Log.e(TAG, "Login failed", exception)
+
+                    val errorMessage = when (exception) {
+                        is FirebaseAuthInvalidCredentialsException -> {
+                            // Password salah atau email format salah
+                            "Email atau password yang Anda masukkan salah. Silakan coba lagi."
+                        }
+                        is FirebaseAuthInvalidUserException -> {
+                            // User tidak ditemukan atau disabled
+                            when (exception.errorCode) {
+                                "ERROR_USER_NOT_FOUND" ->
+                                    "Email tidak terdaftar. Silakan daftar terlebih dahulu."
+                                "ERROR_USER_DISABLED" ->
+                                    "Akun Anda telah dinonaktifkan. Hubungi administrator."
+                                else ->
+                                    "Akun tidak valid: ${exception.message}"
+                            }
+                        }
+                        else -> {
+                            // Error lainnya
+                            when {
+                                exception?.message?.contains("network", ignoreCase = true) == true ->
+                                    "Tidak ada koneksi internet. Periksa koneksi Anda."
+                                exception?.message?.contains("too many requests", ignoreCase = true) == true ->
+                                    "Terlalu banyak percobaan login. Coba lagi nanti."
+                                else ->
+                                    "Login gagal: ${exception?.message}"
+                            }
+                        }
                     }
+
                     Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
                 }
+            }
+            .addOnFailureListener { exception ->
+                showLoading(false)
+                Log.e(TAG, "Login exception", exception)
+                Toast.makeText(
+                    this,
+                    "Terjadi kesalahan: ${exception.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
     }
 
@@ -167,6 +213,7 @@ class login : AppCompatActivity() {
 
     private fun firebaseAuthWithGoogle(idToken: String) {
         showLoading(true)
+        Log.d(TAG, "Authenticating with Google")
 
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
@@ -174,6 +221,9 @@ class login : AppCompatActivity() {
                 showLoading(false)
 
                 if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    Log.d(TAG, "Google login successful for user: ${user?.uid}")
+
                     Toast.makeText(
                         this,
                         "Login Google Berhasil!",
@@ -181,10 +231,11 @@ class login : AppCompatActivity() {
                     ).show()
                     goToMain()
                 } else {
+                    Log.e(TAG, "Google authentication failed", task.exception)
                     Toast.makeText(
                         this,
                         "Autentikasi Google gagal: ${task.exception?.message}",
-                        Toast.LENGTH_SHORT
+                        Toast.LENGTH_LONG
                     ).show()
                 }
             }
@@ -225,7 +276,6 @@ class login : AppCompatActivity() {
     }
 
     private fun goToMain() {
-        // Ganti MainActivity dengan nama activity utama Anda
         val intent = Intent(this, Dashboard::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
@@ -237,7 +287,8 @@ class login : AppCompatActivity() {
         // Cek apakah user sudah login
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // User sudah login, langsung ke MainActivity
+            Log.d(TAG, "User already logged in: ${currentUser.uid}")
+            // User sudah login, langsung ke Dashboard
             goToMain()
         }
     }

@@ -14,6 +14,7 @@ import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.sawit.IsiDashboard.GameActivity
 import com.example.sawit.R
 import com.example.sawit.adapter.VideoAdapter
 import com.example.sawit.model.RetrofitClient
@@ -32,6 +33,10 @@ class EdukasiFragment : Fragment() {
     // GANTI DENGAN API KEY ANDA
     private val API_KEY = "AIzaSyBLZ3nCR8V8Di2hyvUSaDzKCcQgQoIWW_c"
     private val PLAYLIST_ID = "PLoIys-gfSLGEFi73_Ao1eVAwYCqlD9420"
+
+    // Game URLs
+    private val GAME1_URL = "https://html5.gamedistribution.com/a57ef0ff6ec44d9889500893ba619b56/?gd_sdk_referrer_url=https://www.example.com/games/smart-farmer"
+    private val GAME2_URL = "https://html5.gamedistribution.com/96ed50ddb0684b8d974a6bb760b912b9/?gd_sdk_referrer_url=https://gamedistribution.com/games/real-tractor-farmer/"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -80,32 +85,54 @@ class EdukasiFragment : Fragment() {
         }
 
         // Article cards
+
+        // Article cards - Open specific article directly
         view.findViewById<CardView>(R.id.cardArticle1)?.setOnClickListener {
-            Toast.makeText(requireContext(), "Artikel 1 diklik", Toast.LENGTH_SHORT).show()
-            // TODO: Navigate to article detail
+            // Artikel tentang Dampak Kebijakan Pemerintah terhadap Harga TBS
+            openArticleDirectly("https://swa.co.id/read/467043/gapki-menjabarkan-peluang-dan-tantangan-bisnis-cpo-di-2026")
         }
 
         view.findViewById<CardView>(R.id.cardArticle2)?.setOnClickListener {
-            Toast.makeText(requireContext(), "Artikel 2 diklik", Toast.LENGTH_SHORT).show()
-            // TODO: Navigate to article detail
+            // Artikel tentang Tips Jaga Kualitas TBS
+            openArticleDirectly("https://gapki.id/news/2025/12/03/gapki-tegaskan-industri-sawit-semakin-ramah-perempuan-dan-bebas-pekerja-anak/")
         }
 
-        // Game cards
+
+        // Game cards - Navigate to GameActivity
         view.findViewById<CardView>(R.id.cardGame1)?.setOnClickListener {
-            Toast.makeText(requireContext(), "Smart Farmer Game", Toast.LENGTH_SHORT).show()
-            // TODO: Navigate to game
+            openGame(GAME1_URL, "Smart Farmer: Petualangan Petani Sawit")
         }
 
         view.findViewById<CardView>(R.id.cardGame2)?.setOnClickListener {
-            Toast.makeText(requireContext(), "Harvest Hero Game", Toast.LENGTH_SHORT).show()
-            // TODO: Navigate to game
+            openGame(GAME2_URL, "Harvest Hero: Teka-teki Kebun Sawit")
         }
 
-        // Lihat Semua Articles
+
+        //berita
         view.findViewById<TextView>(R.id.btnLihatSemuaArticle)?.setOnClickListener {
-            Toast.makeText(requireContext(), "Lihat semua artikel", Toast.LENGTH_SHORT).show()
-            // TODO: Navigate to all articles
+            openNewsActivity()
         }
+    }
+    private fun openArticleDirectly(url: String) {
+        // Option 1: Buka di browser
+//        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+//        startActivity(intent)
+
+//         Option 2: Buka di WebView Activity (uncomment jika ingin pakai WebView)
+         val intent = Intent(requireContext(), ArticleWebViewActivity::class.java)
+         intent.putExtra("ARTICLE_URL", url)
+         startActivity(intent)
+    }
+    private fun openNewsActivity() {
+        val intent = Intent(requireContext(), NewsActivity::class.java)
+        startActivity(intent)
+    }
+    private fun openGame(gameUrl: String, gameTitle: String) {
+        val intent = Intent(requireContext(), GameActivity::class.java).apply {
+            putExtra("GAME_URL", gameUrl)
+            putExtra("GAME_TITLE", gameTitle)
+        }
+        startActivity(intent)
     }
 
     private fun loadYouTubeVideos() {

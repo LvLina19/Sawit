@@ -74,10 +74,11 @@
                     <ImageView
                         android:id="@+id/ivPreview"
                         android:layout_width="match_parent"
+                        android:layout_gravity="center_vertical"
                         android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_launcher_background"
-                        android:contentDescription="Preview Image" />
+                        android:contentDescription="Preview Image"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/ic_launcher_background" />
                 </androidx.cardview.widget.CardView>
 
                 <!-- Button Pilih Foto -->
@@ -87,7 +88,7 @@
                     app:cardCornerRadius="8dp"
                     app:cardElevation="0dp"
                     android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="#4CAF50">
+                 >
 
                     <Button
                         android:id="@+id/btnPilihFoto"
@@ -97,7 +98,7 @@
                         android:textColor="#FFFFFF"
                         android:textStyle="bold"
                         android:textSize="14sp"
-                        android:background="?attr/selectableItemBackground"
+                        android:backgroundTint="@color/green_primary"
                         android:stateListAnimator="@null" />
                 </androidx.cardview.widget.CardView>
 
@@ -113,12 +114,12 @@
                     android:layout_marginBottom="24dp">
 
                     <Button
-                        android:background="@drawable/btn_border_green"
                         android:id="@+id/btnCekKematangan"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
+                        android:backgroundTint="@color/green_dark"
                         android:text="Cek Kematangan"
-                        android:textColor="#4CAF50"
+                        android:textColor="#FFFFFF"
                         android:textStyle="bold"
                         android:textSize="14sp"
                         android:stateListAnimator="@null" />

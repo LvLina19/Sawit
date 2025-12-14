@@ -2,6 +2,7 @@
     <string name="app_name">Nama Aplikasi Anda</string>
 
     <string name="registrasi_akun">Registrasi Akun</string>
+    <string name="KecilDari1MB"> &lt; 1 mb  </string>
     <string name="username_atau_email">Username atau Email</string>
     <string name="password">Password</string>
     <string name="konfirmasi_password">Konfirmasi Password</string>
