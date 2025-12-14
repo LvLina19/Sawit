@@ -57,7 +57,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Banner Section -->
+        <!-- Banner Section with ViewPager2 -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="200dp"
@@ -65,12 +65,27 @@
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp">
 
-            <ImageView
-                android:id="@+id/ivBanner"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/banner_sawit"/>
+                android:layout_height="match_parent">
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/viewPagerBanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
+                <!-- Indicator Dots -->
+                <LinearLayout
+                    android:id="@+id/dotsIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center"/>
+
+            </RelativeLayout>
 
         </androidx.cardview.widget.CardView>
 
@@ -253,3 +268,259 @@
         </LinearLayout>
     </LinearLayout>
 </ScrollView>
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    android:id="@+id/main"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    android:background="#FFFFFF"-->
+<!--    tools:context=".IsiDashboard.BerandaFragment">-->
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="vertical">-->
+
+<!--        &lt;!&ndash; Header Section &ndash;&gt;-->
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:layout_marginTop="64dp"-->
+<!--            android:padding="16dp"-->
+<!--            android:background="@android:color/white"-->
+<!--            android:gravity="center_vertical">-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/ivProfile"-->
+<!--                android:layout_width="48dp"-->
+<!--                android:layout_height="48dp"-->
+<!--                android:background="@drawable/profile"-->
+<!--                android:padding="12dp"/>-->
+
+<!--            <LinearLayout-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_weight="1"-->
+<!--                android:orientation="vertical"-->
+<!--                android:layout_marginStart="12dp">-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/tvGreeting"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Hi, Sobat Sawit!"-->
+<!--                    android:textColor="@android:color/black"-->
+<!--                    android:fontFamily="@font/montserrat"-->
+<!--                    android:textSize="18sp"-->
+<!--                    android:textStyle="bold"/>-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/tvSubtitle"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Explore semua fitur yuk!"-->
+<!--                    android:fontFamily="@font/montserrat"-->
+<!--                    android:textColor="#999999"-->
+<!--                    android:textSize="14sp"/>-->
+<!--            </LinearLayout>-->
+<!--        </LinearLayout>-->
+
+<!--        &lt;!&ndash; Banner Section &ndash;&gt;-->
+<!--        <androidx.cardview.widget.CardView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="200dp"-->
+<!--            android:layout_margin="16dp"-->
+<!--            app:cardCornerRadius="12dp"-->
+<!--            app:cardElevation="4dp">-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/ivBanner"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:scaleType="centerCrop"-->
+<!--                android:src="@drawable/banner_sawit"/>-->
+
+<!--        </androidx.cardview.widget.CardView>-->
+
+<!--        &lt;!&ndash; Menu Grid Section &ndash;&gt;-->
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="vertical"-->
+<!--            android:paddingStart="16dp"-->
+<!--            android:paddingEnd="16dp"-->
+<!--            android:paddingBottom="80dp">-->
+
+<!--            &lt;!&ndash; First Row &ndash;&gt;-->
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:orientation="horizontal"-->
+<!--                android:weightSum="2">-->
+
+<!--                &lt;!&ndash; Deteksi Kematangan Sawit &ndash;&gt;-->
+<!--                <androidx.cardview.widget.CardView-->
+<!--                    android:id="@+id/cardDeteksi"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="160dp"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:layout_margin="8dp"-->
+<!--                    app:cardCornerRadius="16dp"-->
+<!--                    app:cardElevation="2dp"-->
+<!--                    android:clickable="true"-->
+<!--                    android:foreground="?android:attr/selectableItemBackground">-->
+
+<!--                    <LinearLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        android:orientation="vertical"-->
+<!--                        android:padding="20dp"-->
+<!--                        android:background="#A8D981"-->
+<!--                        android:gravity="bottom">-->
+
+<!--                        <ImageView-->
+<!--                            android:layout_width="48dp"-->
+<!--                            android:layout_height="48dp"-->
+<!--                            android:src="@drawable/ic_scan"-->
+<!--                            android:layout_marginBottom="12dp"/>-->
+
+<!--                        <TextView-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:text="Deteksi\nKematangan Sawit"-->
+<!--                            android:fontFamily="@font/montserrat"-->
+<!--                            android:textColor="@android:color/white"-->
+<!--                            android:textSize="15sp"-->
+<!--                            android:textStyle="bold"-->
+<!--                            android:lineSpacingExtra="2dp"/>-->
+<!--                    </LinearLayout>-->
+<!--                </androidx.cardview.widget.CardView>-->
+
+<!--                &lt;!&ndash; Catat Hasil Panen &ndash;&gt;-->
+<!--                <androidx.cardview.widget.CardView-->
+<!--                    android:id="@+id/cardCatatPanen"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="160dp"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:layout_margin="8dp"-->
+<!--                    app:cardCornerRadius="16dp"-->
+<!--                    app:cardElevation="2dp"-->
+<!--                    android:clickable="true"-->
+<!--                    android:foreground="?android:attr/selectableItemBackground">-->
+
+<!--                    <LinearLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        android:orientation="vertical"-->
+<!--                        android:padding="20dp"-->
+<!--                        android:background="#FFD54F"-->
+<!--                        android:gravity="bottom">-->
+
+<!--                        <ImageView-->
+<!--                            android:layout_width="48dp"-->
+<!--                            android:layout_height="48dp"-->
+<!--                            android:src="@drawable/ic_money"-->
+<!--                            android:layout_marginBottom="12dp"/>-->
+
+<!--                        <TextView-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:text="Catat Hasil Panen"-->
+<!--                            android:textColor="@android:color/white"-->
+<!--                            android:fontFamily="@font/montserrat"-->
+<!--                            android:textSize="16sp"-->
+<!--                            android:textStyle="bold"-->
+<!--                            android:lineSpacingExtra="2dp"/>-->
+<!--                    </LinearLayout>-->
+<!--                </androidx.cardview.widget.CardView>-->
+<!--            </LinearLayout>-->
+
+<!--            &lt;!&ndash; Second Row &ndash;&gt;-->
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:orientation="horizontal"-->
+<!--                android:weightSum="2">-->
+
+<!--                &lt;!&ndash; Edukasi Tentang Sawit &ndash;&gt;-->
+<!--                <androidx.cardview.widget.CardView-->
+<!--                    android:id="@+id/cardEdukasi"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="160dp"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:layout_margin="8dp"-->
+<!--                    app:cardCornerRadius="16dp"-->
+<!--                    app:cardElevation="2dp"-->
+<!--                    android:clickable="true"-->
+<!--                    android:foreground="?android:attr/selectableItemBackground">-->
+
+<!--                    <LinearLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        android:orientation="vertical"-->
+<!--                        android:padding="20dp"-->
+<!--                        android:background="#C88B7F"-->
+<!--                        android:gravity="bottom">-->
+
+<!--                        <ImageView-->
+<!--                            android:layout_width="48dp"-->
+<!--                            android:layout_height="48dp"-->
+<!--                            android:layout_marginBottom="12dp"-->
+<!--                            android:src="@drawable/ic_education" />-->
+
+<!--                        <TextView-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:text="Edukasi Tentang\nSawit"-->
+<!--                            android:textColor="@android:color/white"-->
+<!--                            android:textSize="16sp"-->
+<!--                            android:textStyle="bold"-->
+<!--                            android:fontFamily="@font/montserrat"-->
+<!--                            android:lineSpacingExtra="2dp"/>-->
+<!--                    </LinearLayout>-->
+<!--                </androidx.cardview.widget.CardView>-->
+
+<!--                &lt;!&ndash; Visualisasi Grafik &ndash;&gt;-->
+<!--                <androidx.cardview.widget.CardView-->
+<!--                    android:id="@+id/cardVisualisasi"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="160dp"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:layout_margin="8dp"-->
+<!--                    app:cardCornerRadius="16dp"-->
+<!--                    app:cardElevation="2dp"-->
+<!--                    android:clickable="true"-->
+<!--                    android:foreground="?android:attr/selectableItemBackground">-->
+
+<!--                    <LinearLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        android:orientation="vertical"-->
+<!--                        android:padding="20dp"-->
+<!--                        android:background="#90CAF9"-->
+<!--                        android:gravity="bottom">-->
+
+<!--                        <ImageView-->
+<!--                            android:layout_width="48dp"-->
+<!--                            android:layout_height="48dp"-->
+<!--                            android:src="@drawable/ic_chart"-->
+<!--                            android:layout_marginBottom="12dp"/>-->
+
+<!--                        <TextView-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:text="Riwayat Deteksi"-->
+<!--                            android:textColor="@android:color/white"-->
+<!--                            android:textSize="16sp"-->
+<!--                            android:fontFamily="@font/montserrat"-->
+<!--                            android:textStyle="bold"-->
+<!--                            android:lineSpacingExtra="2dp"/>-->
+<!--                    </LinearLayout>-->
+<!--                </androidx.cardview.widget.CardView>-->
+<!--            </LinearLayout>-->
+<!--        </LinearLayout>-->
+<!--    </LinearLayout>-->
+<!--</ScrollView>-->
