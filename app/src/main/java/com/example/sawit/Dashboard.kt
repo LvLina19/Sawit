@@ -1,5 +1,6 @@
 package com.example.sawit
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -13,8 +14,11 @@ import com.example.sawit.IsiDashboard.DeteksiFragment
 import com.example.sawit.IsiDashboard.LaporanFragment
 import com.example.sawit.IsiDashboard.PengaturanFragment
 import com.example.sawit.IsiDashboard.EdukasiFragment
+import com.google.firebase.auth.FirebaseAuth
 
 class Dashboard : AppCompatActivity() {
+    private lateinit var auth: FirebaseAuth
+
     private lateinit var navBeranda: LinearLayout
     private lateinit var navLaporan: LinearLayout
     private lateinit var navDeteksi: FrameLayout
@@ -33,6 +37,13 @@ class Dashboard : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // TAMBAHKAN: Cek autentikasi di awal
+        auth = FirebaseAuth.getInstance()
+        if (auth.currentUser == null) {
+            redirectToLogin()
+            return
+        }
+
         setContentView(R.layout.activity_dashboard)
 
         // Initialize views
@@ -46,7 +57,13 @@ class Dashboard : AppCompatActivity() {
         // Setup click listeners
         setupClickListeners()
     }
-
+    // TAMBAHKAN: Method untuk redirect ke login
+    private fun redirectToLogin() {
+        val intent = Intent(this, login::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
     private fun initViews() {
         navBeranda = findViewById(R.id.navBeranda)
         navLaporan = findViewById(R.id.navLaporan)
@@ -92,6 +109,13 @@ class Dashboard : AppCompatActivity() {
         }
     }
 
+    // TAMBAHKAN: Override onResume untuk cek auth state
+    override fun onResume() {
+        super.onResume()
+        if (auth.currentUser == null) {
+            redirectToLogin()
+        }
+    }
     private fun updateSelectedMenu(selected: String) {
         val activeColor = ContextCompat.getColor(this, R.color.green_primary)
         val inactiveColor = ContextCompat.getColor(this, R.color.gray_inactive)

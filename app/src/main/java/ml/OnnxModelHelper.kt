@@ -17,7 +17,7 @@ class OnnxModelHelper(private val context: Context) {
     private var ortEnvironment: OrtEnvironment? = null
 
     // Labels kematangan
-    private val labels = arrayOf("Mentah", "Kurang Matang", "Matang", "Terlalu Matang")
+    private val labels = arrayOf("Mentah", "Matang", "Terlalu Matang")
 
     init {
         try {
@@ -200,6 +200,14 @@ class OnnxModelHelper(private val context: Context) {
         )
     }
 
+
+    // TAMBAHKAN METHOD BARU INI 👇
+    private fun softmax(logits: FloatArray): FloatArray {
+        val maxLogit = logits.maxOrNull() ?: 0f
+        val exps = logits.map { kotlin.math.exp((it - maxLogit).toDouble()).toFloat() }
+        val sumExps = exps.sum()
+        return exps.map { it / sumExps }.toFloatArray()
+    }
     fun close() {
         scalerSession?.close()
         pcaSession?.close()
