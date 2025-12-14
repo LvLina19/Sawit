@@ -162,54 +162,59 @@ class DetailLaporanFragment : Fragment() {
     }
 
     private fun setupChart() {
-        Log.d(TAG, "=== SETUP CHART START ===")
+        Log.d(TAG, "=== SETUP CHART START (PER DAY) ===")
         Log.d(TAG, "Total panen data received: ${panenList.size}")
 
-        // Log all raw data
+        // DEBUGGING: Log semua data mentah
         panenList.forEachIndexed { index, panen ->
-            Log.d(TAG, "Raw Data [$index]: Tanggal='${panen.tanggalPanen}' | TBS Matang=${panen.tbsMatang} | TBS Tidak Matang=${panen.tbsTidakMatang} | TBS Kelewat Matang=${panen.tbsKelewatMatang} | Total=${panen.getTotalBerat()} Kg")
+            Log.d(TAG, "RAW Data [$index]:")
+            Log.d(TAG, "  - ID: ${panen.id}")
+            Log.d(TAG, "  - KebunId: ${panen.kebunId}")
+            Log.d(TAG, "  - Tanggal: '${panen.tanggalPanen}'")
+            Log.d(TAG, "  - Total Berat: ${panen.getTotalBerat()} Kg")
+            Log.d(TAG, "  - Timestamp: ${panen.timestamp}")
         }
 
-        // Group data by month and sum the total TBS weight
-        val monthlyData = groupDataByMonth()
+        // Prepare data for chart
+        val dailyData = prepareDailyData()
 
-        Log.d(TAG, "After grouping: ${monthlyData.size} unique months")
+        Log.d(TAG, "Chart will show ${dailyData.size} data points")
+
+        if (dailyData.isEmpty()) {
+            Log.w(TAG, "⚠️ No valid data to display after processing")
+            showEmptyChart()
+            return
+        }
 
         // Prepare chart entries
         val entries = ArrayList<Entry>()
         val labels = ArrayList<String>()
 
-        monthlyData.entries.forEachIndexed { index, entry ->
-            entries.add(Entry(index.toFloat(), entry.value.toFloat()))
-            labels.add(entry.key)
-            Log.d(TAG, "Chart Entry [$index]: Month=${entry.key} | Weight=${entry.value} Kg")
+        dailyData.forEachIndexed { index, (label, weight) ->
+            entries.add(Entry(index.toFloat(), weight.toFloat()))
+            labels.add(label)
+            Log.d(TAG, "Chart Point [$index]: $label = $weight Kg")
         }
 
-        // If no data, show message in chart
-        if (entries.isEmpty()) {
-            Log.w(TAG, "⚠️ No data to display in chart - entries is empty")
-            showEmptyChart()
-            return
-        }
-
-        Log.d(TAG, "Creating chart with ${entries.size} data points")
+        Log.d(TAG, "Creating line chart with ${entries.size} points")
 
         // Create dataset
         val dataSet = LineDataSet(entries, "Total TBS (Kg)")
         dataSet.color = Color.parseColor("#4CAF50")
         dataSet.setCircleColor(Color.parseColor("#4CAF50"))
         dataSet.lineWidth = 3f
-        dataSet.circleRadius = 6f
+        dataSet.circleRadius = 7f
         dataSet.setDrawCircleHole(true)
         dataSet.circleHoleColor = Color.WHITE
-        dataSet.circleHoleRadius = 3f
+        dataSet.circleHoleRadius = 4f
         dataSet.setDrawValues(true)
-        dataSet.valueTextSize = 10f
+        dataSet.valueTextSize = 11f
         dataSet.valueTextColor = Color.parseColor("#000000")
         dataSet.setDrawFilled(true)
         dataSet.fillColor = Color.parseColor("#4CAF50")
         dataSet.fillAlpha = 50
         dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
+        dataSet.cubicIntensity = 0.2f
 
         // Create line data
         val lineData = LineData(dataSet)
@@ -222,7 +227,7 @@ class DetailLaporanFragment : Fragment() {
         xAxis.granularity = 1f
         xAxis.setDrawGridLines(false)
         xAxis.textColor = Color.parseColor("#666666")
-        xAxis.textSize = 10f
+        xAxis.textSize = 9f
         xAxis.labelRotationAngle = -45f
         xAxis.setLabelCount(labels.size, false)
 
@@ -248,78 +253,87 @@ class DetailLaporanFragment : Fragment() {
         lineChart.setScaleEnabled(true)
         lineChart.setPinchZoom(true)
         lineChart.setDrawGridBackground(false)
-        lineChart.animateX(1000)
-        lineChart.setExtraOffsets(10f, 10f, 10f, 20f)
+        lineChart.animateX(1200)
+        lineChart.setExtraOffsets(10f, 10f, 10f, 25f)
 
         // Refresh chart
         lineChart.invalidate()
 
-        Log.d(TAG, "✓ Chart setup completed successfully with ${entries.size} points")
+        Log.d(TAG, "✓ Chart setup completed with ${entries.size} points")
         Log.d(TAG, "=== SETUP CHART END ===")
     }
 
     /**
-     * Group panen data by month and sum total TBS weight
-     * MENGGUNAKAN formattedTanggalPendek untuk parsing yang lebih akurat
+     * FIXED: Prepare data per hari dengan penanganan error yang lebih baik
      */
-    private fun groupDataByMonth(): Map<String, Double> {
-        val monthlyMap = mutableMapOf<String, Double>()
+    private fun prepareDailyData(): List<Pair<String, Double>> {
+        Log.d(TAG, "=== PREPARING DAILY DATA (FIXED) ===")
 
-        // Format untuk parsing dan output
-        val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale("id", "ID"))
-        val outputFormat = SimpleDateFormat("MMM yyyy", Locale("id", "ID"))
+        val dailyList = mutableListOf<Pair<String, Double>>()
 
-        Log.d(TAG, "=== GROUPING DATA BY MONTH ===")
-        Log.d(TAG, "Total panen records to process: ${panenList.size}")
+        // PENTING: Sort berdasarkan timestamp terlebih dahulu
+        val sortedPanen = panenList.sortedBy { it.timestamp }
+        Log.d(TAG, "Sorted ${sortedPanen.size} records by timestamp")
 
-        panenList.forEachIndexed { index, panen ->
-            try {
-                // Gunakan formattedTanggalPendek yang sudah ter-convert
-                val dateString = panen.getFormattedTanggalPendek()
-                Log.d(TAG, "[$index] Processing: Original='${panen.tanggalPanen}' | Formatted='$dateString'")
+        // Multiple date formats untuk fallback
+        val dateFormats = listOf(
+            SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID")),
+            SimpleDateFormat("dd MMM yyyy", Locale("id", "ID")),
+            SimpleDateFormat("d MMMM yyyy", Locale("id", "ID")),
+            SimpleDateFormat("dd-MM-yyyy", Locale("id", "ID")),
+            SimpleDateFormat("dd/MM/yyyy", Locale("id", "ID"))
+        )
 
-                val date = inputFormat.parse(dateString)
+        val outputFormat = SimpleDateFormat("dd/MM", Locale("id", "ID"))
 
-                if (date != null) {
-                    // Get month-year string
-                    val monthYear = outputFormat.format(date)
+        sortedPanen.forEachIndexed { index, panen ->
+            var parsed = false
+            var label = ""
 
-                    // Sum total TBS weight for this month
-                    val totalWeight = panen.getTotalBerat()
-                    monthlyMap[monthYear] = (monthlyMap[monthYear] ?: 0.0) + totalWeight
+            // Coba semua format tanggal
+            for (format in dateFormats) {
+                try {
+                    val date = format.parse(panen.tanggalPanen.trim())
+                    if (date != null) {
+                        label = outputFormat.format(date)
+                        val weight = panen.getTotalBerat()
 
-                    Log.d(TAG, "[$index] ✓ SUCCESS: '$dateString' -> $monthYear | Weight: $totalWeight Kg | Running Total: ${monthlyMap[monthYear]} Kg")
-                } else {
-                    Log.e(TAG, "[$index] ✗ FAILED: Date is null for '$dateString'")
+                        dailyList.add(Pair(label, weight))
+
+                        Log.d(TAG, "✓ [$index] Success: '${panen.tanggalPanen}' -> $label | $weight Kg")
+                        parsed = true
+                        break
+                    }
+                } catch (e: Exception) {
+                    // Continue trying other formats
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "[$index] ✗ ERROR parsing: '${panen.tanggalPanen}'", e)
+            }
+
+            if (!parsed) {
+                // Fallback: gunakan timestamp
+                try {
+                    val date = java.util.Date(panen.timestamp)
+                    label = outputFormat.format(date)
+                    val weight = panen.getTotalBerat()
+
+                    dailyList.add(Pair(label, weight))
+
+                    Log.w(TAG, "⚠ [$index] Fallback using timestamp: '${panen.tanggalPanen}' -> $label | $weight Kg")
+                } catch (e: Exception) {
+                    Log.e(TAG, "✗ [$index] FAILED to parse: '${panen.tanggalPanen}'", e)
+                }
             }
         }
 
-        Log.d(TAG, "=== MONTHLY SUMMARY ===")
-        monthlyMap.forEach { (month, weight) ->
-            Log.d(TAG, "Month: $month | Total Weight: $weight Kg")
-        }
+        Log.d(TAG, "Total daily entries created: ${dailyList.size}")
+        Log.d(TAG, "=== END PREPARING ===")
 
-        // Sort by date (chronologically)
-        val sortedMap = monthlyMap.toSortedMap(compareBy {
-            try {
-                outputFormat.parse(it)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error sorting month: $it", e)
-                null
-            }
-        })
-
-        Log.d(TAG, "Total unique months after sorting: ${sortedMap.size}")
-        Log.d(TAG, "=== END GROUPING ===")
-
-        return sortedMap
+        return dailyList
     }
 
     private fun showEmptyChart() {
-        // Show empty state
+        Log.d(TAG, "Showing empty chart placeholder")
+
         val entries = ArrayList<Entry>()
         entries.add(Entry(0f, 0f))
 
