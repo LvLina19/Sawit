@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="#F5F5F5"
     tools:context=".IsiDashboard.LihatKebunFragment">
 
     <!-- Header -->
@@ -39,25 +40,55 @@
             android:textStyle="bold" />
     </RelativeLayout>
 
-    <!-- RecyclerView untuk daftar kebun -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvKebun"
+    <!-- Content Area -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp"
-        android:clipToPadding="false" />
+        android:layout_height="match_parent">
 
-    <!-- Empty State -->
-    <TextView
-        android:id="@+id/tvEmptyState"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="100dp"
-        android:text="Belum ada data kebun.\nTambahkan kebun terlebih dahulu."
-        android:textAlignment="center"
-        android:textColor="#888888"
-        android:textSize="16sp"
-        android:visibility="gone" />
+        <!-- RecyclerView untuk menampilkan list kebun -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvKebun"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:clipToPadding="false"
+            tools:listitem="@layout/item_kebun" />
 
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/layoutEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/ic_empty_state"
+                android:alpha="0.5" />
+
+            <TextView
+                android:id="@+id/tvEmptyState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Belum ada data kebun"
+                android:textColor="#666666"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Tambahkan kebun pertama Anda"
+                android:textColor="#999999"
+                android:textSize="14sp"
+                android:gravity="center" />
+        </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

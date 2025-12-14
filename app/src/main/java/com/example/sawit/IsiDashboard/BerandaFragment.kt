@@ -52,10 +52,12 @@ class BerandaFragment : Fragment() {
 
         cardEdukasi.setOnClickListener {
             Toast.makeText(context, "Edukasi Tentang Sawit", Toast.LENGTH_SHORT).show()
+            navigateToFragment(EdukasiFragment())
         }
 
         cardVisualisasi.setOnClickListener {
             Toast.makeText(context, "Visualisasi Grafik", Toast.LENGTH_SHORT).show()
+            navigateToFragment(RiwayatDeteksiFragment())
         }
     }
 
