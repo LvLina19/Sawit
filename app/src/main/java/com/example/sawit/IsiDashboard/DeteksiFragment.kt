@@ -1,6 +1,5 @@
 package com.example.sawit.IsiDashboard
 
-import ai.onnxruntime.OnnxTensor
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -19,14 +19,12 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
 import com.example.sawit.R
 import com.example.sawit.ml.OnnxModelHelper
 import com.example.sawit.ml.PredictionResult
 import kotlinx.coroutines.launch
 import java.io.InputStream
-import java.nio.FloatBuffer
 
 class DeteksiFragment : Fragment() {
 
@@ -46,6 +44,10 @@ class DeteksiFragment : Fragment() {
 
     private var selectedImageBitmap: Bitmap? = null
     private var onnxHelper: OnnxModelHelper? = null
+
+    companion object {
+        private const val TAG = "DeteksiFragment"
+    }
 
     // Activity Result Launcher untuk memilih gambar
     private val pickImageLauncher = registerForActivityResult(
@@ -126,8 +128,10 @@ class DeteksiFragment : Fragment() {
     private fun initializeModel() {
         try {
             onnxHelper = OnnxModelHelper(requireContext())
-            Toast.makeText(requireContext(), "Model berhasil dimuat", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Model berhasil dimuat")
+            Toast.makeText(requireContext(), "Model siap digunakan", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
+            Log.e(TAG, "Gagal memuat model", e)
             Toast.makeText(requireContext(), "Gagal memuat model: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
@@ -142,18 +146,24 @@ class DeteksiFragment : Fragment() {
             val inputStream: InputStream? = requireContext().contentResolver.openInputStream(uri)
             selectedImageBitmap = BitmapFactory.decodeStream(inputStream)
 
-            // Tampilkan preview
-            ivPreview.setImageBitmap(selectedImageBitmap)
+            if (selectedImageBitmap != null) {
+                // Tampilkan preview
+                ivPreview.setImageBitmap(selectedImageBitmap)
 
-            // Enable button cek kematangan
-            btnCekKematangan.isEnabled = true
-            btnCekKematangan.alpha = 1.0f
+                // Enable button cek kematangan
+                btnCekKematangan.isEnabled = true
+                btnCekKematangan.alpha = 1.0f
 
-            // Hide result if showing
-            resultContainer.visibility = View.GONE
+                // Hide result if showing
+                resultContainer.visibility = View.GONE
 
-            Toast.makeText(requireContext(), "Gambar berhasil dipilih", Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Gambar berhasil dipilih: ${selectedImageBitmap?.width}x${selectedImageBitmap?.height}")
+                Toast.makeText(requireContext(), "Gambar berhasil dipilih", Toast.LENGTH_SHORT).show()
+            } else {
+                throw Exception("Bitmap null setelah decode")
+            }
         } catch (e: Exception) {
+            Log.e(TAG, "Gagal memuat gambar", e)
             Toast.makeText(requireContext(), "Gagal memuat gambar: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
@@ -163,15 +173,20 @@ class DeteksiFragment : Fragment() {
         btnCekKematangan.isEnabled = false
         btnCekKematangan.text = "Memproses..."
 
+        Log.d(TAG, "=== Mulai Analisis ===")
+        Log.d(TAG, "Ukuran bitmap: ${bitmap.width}x${bitmap.height}")
+
         lifecycleScope.launch {
             try {
+                // Prediksi
                 val result = onnxHelper?.predictMaturity(bitmap)
 
                 // DEBUG: Log hasil prediksi
-                android.util.Log.d("DeteksiFragment", "Label: ${result?.label}")
-                android.util.Log.d("DeteksiFragment", "Confidence RAW: ${result?.confidence}")
-                android.util.Log.d("DeteksiFragment", "Confidence x100: ${result?.confidence?.times(100)}")
-                android.util.Log.d("DeteksiFragment", "Error: ${result?.error}")
+                Log.d(TAG, "=== Hasil Prediksi ===")
+                Log.d(TAG, "Label: ${result?.label}")
+                Log.d(TAG, "Predicted Class: ${result?.predictedClass}")
+                Log.d(TAG, "Confidence: ${result?.confidence}%")
+                Log.d(TAG, "Error: ${result?.error}")
 
                 // Kembalikan state button
                 btnCekKematangan.isEnabled = true
@@ -180,14 +195,16 @@ class DeteksiFragment : Fragment() {
                 if (result != null && result.error == null) {
                     showResult(result)
                 } else {
+                    val errorMsg = result?.error ?: "Unknown error"
+                    Log.e(TAG, "Error prediksi: $errorMsg")
                     Toast.makeText(
                         requireContext(),
-                        "Error: ${result?.error ?: "Unknown error"}",
+                        "Error: $errorMsg",
                         Toast.LENGTH_LONG
                     ).show()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("DeteksiFragment", "Exception: ${e.message}", e)
+                Log.e(TAG, "Exception saat analisis", e)
                 btnCekKematangan.isEnabled = true
                 btnCekKematangan.text = "Cek Kematangan"
                 Toast.makeText(
@@ -199,21 +216,29 @@ class DeteksiFragment : Fragment() {
         }
     }
 
-    // Tambahkan fungsi softmax
-    private fun softmax(logits: FloatArray): FloatArray {
-        val maxLogit = logits.maxOrNull() ?: 0f
-        val exps = logits.map { kotlin.math.exp((it - maxLogit).toDouble()).toFloat() }
-        val sumExps = exps.sum()
-        return exps.map { it / sumExps }.toFloatArray()
-    }
-    private fun showResult(result: com.example.sawit.ml.PredictionResult) {
-        // Update result label
+    private fun showResult(result: PredictionResult) {
+        Log.d(TAG, "=== Menampilkan Hasil ===")
+        Log.d(TAG, "Label: ${result.label}")
+        Log.d(TAG, "Confidence: ${result.confidence}%")
+
+        // Update result label dengan styling
         tvResultLabel.text = result.label
 
-        // Update confidence - TIDAK PERLU DIKALI 100 LAGI!
-        val confidenceInt = result.confidence.toInt() // Langsung toInt() saja
+        // Set warna berdasarkan label (DISESUAIKAN untuk 3 label)
+        val labelColor = when (result.label) {
+            "Mentah" -> android.graphics.Color.parseColor("#E53935") // Merah
+            "Matang" -> android.graphics.Color.parseColor("#43A047") // Hijau
+            "Kelewat Matang" -> android.graphics.Color.parseColor("#FB8C00") // Orange
+            else -> android.graphics.Color.parseColor("#757575") // Abu-abu
+        }
+        tvResultLabel.setTextColor(labelColor)
+
+        // Update confidence (sudah dalam bentuk persen dari model)
+        val confidenceInt = result.confidence.toInt().coerceIn(0, 100)
         tvConfidence.text = "$confidenceInt%"
         progressConfidence.progress = confidenceInt
+
+        Log.d(TAG, "Progress bar set to: $confidenceInt")
 
         // Show result container with animation
         resultContainer.visibility = View.VISIBLE
@@ -222,18 +247,30 @@ class DeteksiFragment : Fragment() {
             .alpha(1f)
             .setDuration(300)
             .start()
-    }    private fun resetDetection() {
+
+        Log.d(TAG, "Result container ditampilkan")
+    }
+
+    private fun resetDetection() {
+        Log.d(TAG, "Reset detection")
         resultContainer.visibility = View.GONE
         btnCekKematangan.isEnabled = false
         btnCekKematangan.alpha = 0.5f
+        btnCekKematangan.text = "Cek Kematangan"
+
         selectedImageBitmap?.recycle()
         selectedImageBitmap = null
+
         ivPreview.setImageResource(R.drawable.ic_launcher_background)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        Log.d(TAG, "onDestroyView called")
+
         onnxHelper?.close()
+        onnxHelper = null
+
         selectedImageBitmap?.recycle()
         selectedImageBitmap = null
     }

@@ -4,9 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -27,8 +30,11 @@ class login : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
+    private lateinit var imgLoading: ImageView
+    private lateinit var rotateAnim: Animation
 
     // Views
+    private lateinit var loadingOverlay: View
     private lateinit var inputEmail: EditText
     private lateinit var inputPassword: EditText
     private lateinit var btnEmailLogin: Button
@@ -59,6 +65,10 @@ class login : AppCompatActivity() {
     }
 
     private fun initViews() {
+        imgLoading = findViewById(R.id.imgLoading)
+        rotateAnim = AnimationUtils.loadAnimation(this, R.anim.rotate_loading)
+
+        loadingOverlay = findViewById(R.id.loadingOverlay)
         inputEmail = findViewById(R.id.et_username_email)
         inputPassword = findViewById(R.id.et_password)
         btnEmailLogin = findViewById(R.id.btn_login)
@@ -268,12 +278,20 @@ class login : AppCompatActivity() {
     }
 
     private fun showLoading(isLoading: Boolean) {
-        progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        if (isLoading) {
+            loadingOverlay.visibility = View.VISIBLE
+            imgLoading.startAnimation(rotateAnim)
+        } else {
+            imgLoading.clearAnimation()
+            loadingOverlay.visibility = View.GONE
+        }
+
         btnEmailLogin.isEnabled = !isLoading
         btnGoogle.isEnabled = !isLoading
         inputEmail.isEnabled = !isLoading
         inputPassword.isEnabled = !isLoading
     }
+
 
     private fun goToMain() {
         val intent = Intent(this, Dashboard::class.java)

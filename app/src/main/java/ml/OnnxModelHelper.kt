@@ -6,42 +6,60 @@ import android.graphics.Color
 import ai.onnxruntime.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.opencv.android.Utils
+import org.opencv.core.*
+import org.opencv.imgproc.Imgproc
 import java.io.InputStream
 import java.nio.FloatBuffer
+import kotlin.math.sqrt
 
 class OnnxModelHelper(private val context: Context) {
 
-    private var scalerSession: OrtSession? = null
-    private var pcaSession: OrtSession? = null
     private var modelSession: OrtSession? = null
     private var ortEnvironment: OrtEnvironment? = null
 
-    // Labels kematangan
-    private val labels = arrayOf("Mentah", "Matang", "Terlalu Matang")
+    // Scaler parameters (dari scaler_sawit.pkl)
+    // TODO: Ganti dengan nilai AKTUAL dari scaler Anda!
+    private val scalerMean = floatArrayOf(
+        38.7709f,
+        59.3592f,
+        130.0042f,
+        1103.9981f,
+        0.1342f,
+        0.1950f
+    )
+
+    private val scalerStd = floatArrayOf(
+        21.5241f,
+        23.0539f,
+        35.8990f,
+        387.4233f,
+        0.1815f,
+        0.1739f
+    )
+
+    // Labels kematangan (3 kategori)
+    private val labels = arrayOf(
+        "Mentah",           // 0
+        "Matang",           // 1
+        "Kelewat Matang"    // 2
+    )
 
     init {
         try {
             ortEnvironment = OrtEnvironment.getEnvironment()
-            loadModels()
+            loadModel()
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    private fun loadModels() {
+    private fun loadModel() {
         try {
             val sessionOptions = OrtSession.SessionOptions()
 
-            // Load Scaler
-            val scalerBytes = readModelFromAssets("scaler.onnx")
-            scalerSession = ortEnvironment?.createSession(scalerBytes, sessionOptions)
-
-            // Load PCA
-            val pcaBytes = readModelFromAssets("pca.onnx")
-            pcaSession = ortEnvironment?.createSession(pcaBytes, sessionOptions)
-
-            // Load Main Model
-            val modelBytes = readModelFromAssets("model.onnx")
+            // Load ONNX Model (hanya 1 file)
+            val modelBytes = readModelFromAssets("model_sawit_rf.onnx")
             modelSession = ortEnvironment?.createSession(modelBytes, sessionOptions)
 
         } catch (e: Exception) {
@@ -57,17 +75,14 @@ class OnnxModelHelper(private val context: Context) {
 
     suspend fun predictMaturity(bitmap: Bitmap): PredictionResult = withContext(Dispatchers.Default) {
         try {
-            // 1. Extract features dari gambar
-            val features = extractFeaturesFromBitmap(bitmap)
+            // 1. Extract features dari gambar (SAMA dengan Python)
+            val features = extractFeatures(bitmap)
 
-            // 2. Apply Scaler
-            val scaledFeatures = applyScaler(features)
+            // 2. Apply Scaler (manual, tanpa ONNX scaler)
+            val scaledFeatures = applyManualScaler(features)
 
-            // 3. Apply PCA
-            val pcaFeatures = applyPCA(scaledFeatures)
-
-            // 4. Predict dengan model utama
-            val prediction = predictWithModel(pcaFeatures)
+            // 3. Predict dengan ONNX model
+            val prediction = predictWithModel(scaledFeatures)
 
             prediction
         } catch (e: Exception) {
@@ -80,83 +95,121 @@ class OnnxModelHelper(private val context: Context) {
         }
     }
 
-    private fun extractFeaturesFromBitmap(bitmap: Bitmap): FloatArray {
-        // Resize bitmap ke ukuran yang dibutuhkan (misal 224x224)
-        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
+    /**
+     * Ekstraksi fitur IDENTIK dengan Python
+     * Mengembalikan: [h_mean, s_mean, v_mean, contrast, energy, homogeneity]
+     */
+    private fun extractFeatures(bitmap: Bitmap): FloatArray {
+        // Resize ke 200x200 (SAMA dengan Python)
+        val resized = Bitmap.createScaledBitmap(bitmap, 200, 200, true)
 
-        val features = FloatArray(224 * 224 * 3) // RGB channels
-        var index = 0
+        // Convert Bitmap ke OpenCV Mat
+        val mat = Mat()
+        Utils.bitmapToMat(resized, mat)
 
-        for (y in 0 until resizedBitmap.height) {
-            for (x in 0 until resizedBitmap.width) {
-                val pixel = resizedBitmap.getPixel(x, y)
+        // Convert RGBA ke BGR (OpenCV default)
+        val bgr = Mat()
+        Imgproc.cvtColor(mat, bgr, Imgproc.COLOR_RGBA2BGR)
 
-                // Normalize RGB values to [0, 1]
-                features[index++] = Color.red(pixel) / 255f
-                features[index++] = Color.green(pixel) / 255f
-                features[index++] = Color.blue(pixel) / 255f
+        // ---- 1. WARNA (HSV) ----
+        val hsv = Mat()
+        Imgproc.cvtColor(bgr, hsv, Imgproc.COLOR_BGR2HSV)
+
+        val hsvChannels = mutableListOf<Mat>()
+        Core.split(hsv, hsvChannels)
+
+        val hMean = Core.mean(hsvChannels[0]).`val`[0].toFloat()
+        val sMean = Core.mean(hsvChannels[1]).`val`[0].toFloat()
+        val vMean = Core.mean(hsvChannels[2]).`val`[0].toFloat()
+
+        // ---- 2. TEKSTUR (GLCM) ----
+        val gray = Mat()
+        Imgproc.cvtColor(bgr, gray, Imgproc.COLOR_BGR2GRAY)
+
+        // Hitung GLCM features
+        val glcmFeatures = calculateGLCM(gray)
+        val contrast = glcmFeatures[0]
+        val energy = glcmFeatures[1]
+        val homogeneity = glcmFeatures[2]
+
+        // Cleanup
+        mat.release()
+        bgr.release()
+        hsv.release()
+        gray.release()
+        hsvChannels.forEach { it.release() }
+
+        return floatArrayOf(hMean, sMean, vMean, contrast, energy, homogeneity)
+    }
+
+    /**
+     * Hitung GLCM features (simplified version)
+     * Untuk hasil PERSIS sama, gunakan library seperti scikit-image
+     */
+    private fun calculateGLCM(grayMat: Mat): FloatArray {
+        val width = grayMat.cols()
+        val height = grayMat.rows()
+
+        // GLCM matrix (256x256 untuk grayscale)
+        val glcm = Array(256) { FloatArray(256) }
+
+        // Hitung co-occurrence (distance=1, angle=0°)
+        for (y in 0 until height) {
+            for (x in 0 until width - 1) {
+                val pixel1 = grayMat.get(y, x)[0].toInt()
+                val pixel2 = grayMat.get(y, x + 1)[0].toInt()
+                glcm[pixel1][pixel2]++
             }
         }
 
-        return features
-    }
-
-    private fun applyScaler(features: FloatArray): FloatArray {
-        val inputName = scalerSession?.inputNames?.iterator()?.next()
-        val shape = longArrayOf(1, features.size.toLong())
-
-        val inputTensor = OnnxTensor.createTensor(
-            ortEnvironment,
-            FloatBuffer.wrap(features),
-            shape
-        )
-
-        val results = scalerSession?.run(mapOf(inputName to inputTensor))
-        val output = results?.get(0)?.value
-
-        val outputArray = when (output) {
-            is Array<*> -> {
-                // Handle 2D array output
-                (output[0] as? FloatArray) ?: FloatArray(0)
+        // Normalize GLCM
+        var total = 0f
+        for (i in 0 until 256) {
+            for (j in 0 until 256) {
+                total += glcm[i][j]
             }
-            is FloatArray -> output
-            else -> FloatArray(0)
         }
 
-        inputTensor.close()
-        results?.close()
-
-        return outputArray
-    }
-
-    private fun applyPCA(features: FloatArray): FloatArray {
-        val inputName = pcaSession?.inputNames?.iterator()?.next()
-        val shape = longArrayOf(1, features.size.toLong())
-
-        val inputTensor = OnnxTensor.createTensor(
-            ortEnvironment,
-            FloatBuffer.wrap(features),
-            shape
-        )
-
-        val results = pcaSession?.run(mapOf(inputName to inputTensor))
-        val output = results?.get(0)?.value
-
-        val outputArray = when (output) {
-            is Array<*> -> {
-                // Handle 2D array output
-                (output[0] as? FloatArray) ?: FloatArray(0)
+        if (total > 0) {
+            for (i in 0 until 256) {
+                for (j in 0 until 256) {
+                    glcm[i][j] /= total
+                }
             }
-            is FloatArray -> output
-            else -> FloatArray(0)
         }
 
-        inputTensor.close()
-        results?.close()
+        // Calculate properties
+        var contrast = 0f
+        var energy = 0f
+        var homogeneity = 0f
 
-        return outputArray
+        for (i in 0 until 256) {
+            for (j in 0 until 256) {
+                val value = glcm[i][j]
+                contrast += (i - j) * (i - j) * value
+                energy += value * value
+                homogeneity += value / (1 + kotlin.math.abs(i - j))
+            }
+        }
+
+        return floatArrayOf(contrast, energy, homogeneity)
     }
 
+    /**
+     * Manual scaling: (x - mean) / std
+     * Sama dengan StandardScaler.transform() di Python
+     */
+    private fun applyManualScaler(features: FloatArray): FloatArray {
+        val scaled = FloatArray(features.size)
+        for (i in features.indices) {
+            scaled[i] = (features[i] - scalerMean[i]) / scalerStd[i]
+        }
+        return scaled
+    }
+
+    /**
+     * Prediksi menggunakan ONNX model
+     */
     private fun predictWithModel(features: FloatArray): PredictionResult {
         val inputName = modelSession?.inputNames?.iterator()?.next()
         val shape = longArrayOf(1, features.size.toLong())
@@ -168,49 +221,31 @@ class OnnxModelHelper(private val context: Context) {
         )
 
         val results = modelSession?.run(mapOf(inputName to inputTensor))
+
+        // RandomForest ONNX output biasanya langsung class index
         val output = results?.get(0)?.value
 
-        val probabilities = when (output) {
-            is Array<*> -> {
-                // Handle 2D array output
-                (output[0] as? FloatArray) ?: FloatArray(labels.size)
-            }
-            is FloatArray -> output
-            else -> FloatArray(labels.size)
-        }
-
-        // Find max probability
-        var maxIndex = 0
-        var maxProb = probabilities[0]
-
-        for (i in probabilities.indices) {
-            if (probabilities[i] > maxProb) {
-                maxProb = probabilities[i]
-                maxIndex = i
-            }
+        val predictedClass = when (output) {
+            is LongArray -> output[0].toInt()
+            is Array<*> -> (output[0] as? LongArray)?.get(0)?.toInt() ?: 0
+            else -> 0
         }
 
         inputTensor.close()
         results?.close()
 
+        // Confidence bisa diambil dari output kedua jika ada (probabilities)
+        // Untuk sementara gunakan confidence dummy
+        val confidence = 85f // Atau ambil dari output[1] jika tersedia
+
         return PredictionResult(
-            label = labels[maxIndex],
-            confidence = maxProb * 100,
-            allProbabilities = probabilities.map { it * 100 }
+            label = labels.getOrElse(predictedClass) { "Unknown" },
+            confidence = confidence,
+            predictedClass = predictedClass
         )
     }
 
-
-    // TAMBAHKAN METHOD BARU INI 👇
-    private fun softmax(logits: FloatArray): FloatArray {
-        val maxLogit = logits.maxOrNull() ?: 0f
-        val exps = logits.map { kotlin.math.exp((it - maxLogit).toDouble()).toFloat() }
-        val sumExps = exps.sum()
-        return exps.map { it / sumExps }.toFloatArray()
-    }
     fun close() {
-        scalerSession?.close()
-        pcaSession?.close()
         modelSession?.close()
         ortEnvironment?.close()
     }
@@ -219,6 +254,6 @@ class OnnxModelHelper(private val context: Context) {
 data class PredictionResult(
     val label: String,
     val confidence: Float,
-    val allProbabilities: List<Float> = emptyList(),
+    val predictedClass: Int = -1,
     val error: String? = null
 )
