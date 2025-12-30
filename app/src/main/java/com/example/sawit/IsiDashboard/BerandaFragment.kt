@@ -29,8 +29,8 @@ class BerandaFragment : Fragment() {
     private val bannerImages = listOf(
         R.drawable.banner_sawit,
         R.drawable.gambar_lahan_sawit,     // Gambar banner kedua
-        R.drawable.article_tbs,     // Gambar banner ketiga
-        R.drawable.article_quality      // Tambahkan lebih banyak jika mau
+        R.drawable.article_quality,      // Gambar banner ketiga
+        R.drawable.article_tbs,     // Tambahkan lebih banyak jika mau
     )
 
     override fun onCreateView(
