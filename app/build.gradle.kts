@@ -91,8 +91,15 @@ dependencies {
     // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
- // Google Play Services
-implementation("com.google.android.gms:play-services-auth:21.2.0")
+    // Google Play Services
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
     // MPAndroidChart
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    // Firebase
+    implementation("com.google.firebase:firebase-firestore")
+
+    // OkHttp untuk upload ke ImgBB
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
 }
