@@ -35,9 +35,6 @@ class PengaturanFragment : Fragment() {
     private lateinit var menuKeamanan: LinearLayout
     private lateinit var menuNotifikasi: LinearLayout
     private lateinit var menuPrivasi: LinearLayout
-    private lateinit var menuBahasa: LinearLayout
-    private lateinit var menuSupport: LinearLayout
-    private lateinit var menuTema: LinearLayout
     private lateinit var menuPenyimpananData: LinearLayout
     private lateinit var menuLaporkanMasalah: LinearLayout
     private lateinit var menuTambahkanAkun: LinearLayout
@@ -116,9 +113,6 @@ class PengaturanFragment : Fragment() {
         menuKeamanan = view.findViewById(R.id.menuKeamanan)
         menuNotifikasi = view.findViewById(R.id.menuNotifikasi)
         menuPrivasi = view.findViewById(R.id.menuPrivasi)
-        menuBahasa = view.findViewById(R.id.menuBahasa)
-        menuSupport = view.findViewById(R.id.menuSupport)
-        menuTema = view.findViewById(R.id.menuTema)
         menuPenyimpananData = view.findViewById(R.id.menuPenyimpananData)
         menuLaporkanMasalah = view.findViewById(R.id.menuLaporkanMasalah)
         menuTambahkanAkun = view.findViewById(R.id.menuTambahkanAkun)
@@ -154,16 +148,6 @@ class PengaturanFragment : Fragment() {
             navigateToFragment(PrivasiFragment())
         }
 
-        // Bahasa
-        menuBahasa.setOnClickListener {
-            showLanguageDialog()
-        }
-
-
-        // Tema
-        menuTema.setOnClickListener {
-            showThemeDialog()
-        }
 
         // Penyimpanan Data
         menuPenyimpananData.setOnClickListener {

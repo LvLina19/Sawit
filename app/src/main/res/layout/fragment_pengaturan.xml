@@ -234,35 +234,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Bahasa -->
-                    <LinearLayout
-                        android:id="@+id/menuBahasa"
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground">
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_language"
-                            app:tint="#333333" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Bahasa"
-                            android:textSize="16sp"
-                            android:textColor="#333333"
-                            android:fontFamily="@font/montserrat"
-                            android:layout_marginStart="16dp" />
-                    </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
@@ -270,35 +242,6 @@
                         android:background="#F0F0F0"
                         android:layout_marginStart="56dp" />
 
-                    <!-- Support -->
-                    <LinearLayout
-                        android:id="@+id/menuSupport"
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_help"
-                            app:tint="#333333" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Support"
-                            android:textSize="16sp"
-                            android:textColor="#333333"
-                            android:fontFamily="@font/montserrat"
-                            android:layout_marginStart="16dp" />
-                    </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
@@ -306,35 +249,6 @@
                         android:background="#F0F0F0"
                         android:layout_marginStart="56dp" />
 
-                    <!-- Tema -->
-                    <LinearLayout
-                        android:id="@+id/menuTema"
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_theme"
-                            app:tint="#333333" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Tema"
-                            android:textSize="16sp"
-                            android:textColor="#333333"
-                            android:fontFamily="@font/montserrat"
-                            android:layout_marginStart="16dp" />
-                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
