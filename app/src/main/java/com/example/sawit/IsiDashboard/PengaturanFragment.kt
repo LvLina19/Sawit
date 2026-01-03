@@ -1,6 +1,8 @@
 package com.example.sawit.IsiDashboard
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +21,7 @@ import com.example.sawit.pengaturan.PenyimpananDataFragment
 import com.example.sawit.pengaturan.PrivasiFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.util.*
 
 class PengaturanFragment : Fragment() {
 
@@ -219,11 +222,6 @@ class PengaturanFragment : Fragment() {
                 val langCode = if (which == 0) "id" else "en"
                 saveLanguagePreference(langCode)
                 dialog.dismiss()
-                Toast.makeText(
-                    requireContext(),
-                    "Bahasa akan berubah saat restart aplikasi",
-                    Toast.LENGTH_SHORT
-                ).show()
             }
             .setNegativeButton("Batal", null)
             .show()
@@ -241,8 +239,23 @@ class PengaturanFragment : Fragment() {
             .document(userId)
             .update("language", langCode)
             .addOnSuccessListener {
-                // Language preference saved
+                // Terapkan bahasa langsung
+                setLocale(requireContext(), langCode)
+
+                // Restart activity untuk memuat ulang semua UI
+                requireActivity().recreate()
             }
+    }
+
+    // Fungsi untuk menerapkan bahasa
+    private fun setLocale(context: Context, languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+
+        context.resources.updateConfiguration(config, context.resources.displayMetrics)
     }
 
     private fun showThemeDialog() {
