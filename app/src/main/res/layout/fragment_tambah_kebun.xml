@@ -119,30 +119,28 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Jenis Bibit"
-                android:textColor="#000000"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etJenisBibit"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/border_green_rounded"
-                android:hint="Masukkan Jenis Bibit"
-                android:padding="16dp"
+                android:text="Jenis Bibit *"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
                 android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
+
+            <Spinner
+                android:id="@+id/spinnerJenisBibit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/border_green_rounded"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
 
             <!-- Jumlah Tanaman -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Jumlah  Tanaman (Opsional )"
+                android:text="Jumlah Tanaman (Opsional )"
                 android:textColor="#000000"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -164,44 +162,22 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Tahun Tanam"
+                android:text="Tahun Tanam *"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
                 android:textColor="#000000"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
 
-            <RelativeLayout
-                android:id="@+id/layoutTahunTanam"
+            <Spinner
+                android:id="@+id/spinnerTahunTanam"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/border_green_rounded"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <EditText
-                    android:id="@+id/etTahunTanam"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/iconCalendar"
-                    android:background="@android:color/transparent"
-                    android:focusable="false"
-                    android:clickable="false"
-                    android:hint="Pilih Bulan / Tahun Tanam"
-                    android:textColor="#000000"
-                    android:textColorHint="#AAAAAA"
-                    android:textSize="14sp" />
-
-                <ImageView
-                    android:id="@+id/iconCalendar"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/ic_calendar"
-                    app:tint="#4CAF50" />
-            </RelativeLayout>
+                android:paddingStart="12dp"
+                android:textColorHint="#AAAAAA"
+                android:paddingEnd="12dp" />
 
             <!-- Jenis Tanah -->
             <TextView
