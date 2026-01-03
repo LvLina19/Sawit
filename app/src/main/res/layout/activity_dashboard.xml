@@ -25,6 +25,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+
     <!--    &lt;!&ndash; Bottom Navigation &ndash;&gt;-->
     <!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
     <!--        android:id="@+id/bottomNavigation"-->
@@ -38,5 +39,20 @@
     <!--        app:layout_constraintBottom_toBottomOf="parent"-->
     <!--        app:layout_constraintStart_toStartOf="parent"-->
     <!--        app:layout_constraintEnd_toEndOf="parent"/>-->
+    <!-- Floating Chatbot Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabChatBot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:backgroundTint="@color/green_primary"
+        app:srcCompat="@android:drawable/stat_notify_chat"
+        app:tint="@color/white"
+        app:elevation="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/customBottomNav"/>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

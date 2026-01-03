@@ -14,6 +14,7 @@ import androidx.cardview.widget.CardView
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sawit.R
 
+
 class BerandaFragment : Fragment() {
     private lateinit var cardDeteksi: CardView
     private lateinit var cardCatatPanen: CardView

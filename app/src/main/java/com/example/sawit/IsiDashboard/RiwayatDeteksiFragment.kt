@@ -1,229 +1,207 @@
 package com.example.sawit.IsiDashboard
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
-import androidx.recyclerview.widget.DiffUtil
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.sawit.R
-import com.example.sawit.databinding.FragmentRiwayatDeteksiBinding
-import com.example.sawit.databinding.ItemRiwayatBinding
+import com.example.sawit.adapter.RiwayatDeteksiAdapter
+import com.example.sawit.model.RiwayatDeteksiRepository
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 
 class RiwayatDeteksiFragment : Fragment() {
-    private var _binding: FragmentRiwayatDeteksiBinding? = null
-    private val binding get() = _binding!!
-    private lateinit var adapter: RiwayatAdapter
-    private var allData = listOf<RiwayatDeteksi>()
+
+    private lateinit var toolbar: MaterialToolbar
+    private lateinit var searchView: SearchView
+    private lateinit var rvRiwayat: RecyclerView
+    private lateinit var layoutEmpty: LinearLayout
+
+    private lateinit var adapter: RiwayatDeteksiAdapter
+    private lateinit var repository: RiwayatDeteksiRepository
+
+    companion object {
+        private const val TAG = "RiwayatDeteksiFragment"
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentRiwayatDeteksiBinding.inflate(inflater, container, false)
-        return binding.root
+    ): View? {
+        val view = inflater.inflate(R.layout.fragment_riwayat_deteksi, container, false)
+
+        initViews(view)
+        setupRecyclerView()
+        setupListeners()
+
+        repository = RiwayatDeteksiRepository(requireContext())
+
+        loadRiwayat()
+
+        return view
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        setupRecyclerView()
-        setupSearchView()
-        loadData()
+    private fun initViews(view: View) {
+        toolbar = view.findViewById(R.id.toolbar)
+        searchView = view.findViewById(R.id.etSearch)
+        rvRiwayat = view.findViewById(R.id.rvRiwayat)
+        layoutEmpty = view.findViewById(R.id.layoutEmpty)
     }
 
     private fun setupRecyclerView() {
-        adapter = RiwayatAdapter(
-            onDeleteClick = { riwayat ->
-                deleteRiwayat(riwayat)
-            }
-        )
-
-        binding.rvRiwayat.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = this@RiwayatDeteksiFragment.adapter
+        adapter = RiwayatDeteksiAdapter { riwayat ->
+            showDeleteConfirmation(riwayat.id ?: "")
         }
+
+        rvRiwayat.layoutManager = LinearLayoutManager(requireContext())
+        rvRiwayat.adapter = adapter
     }
 
-    private fun setupSearchView() {
-        binding.etSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+    private fun setupListeners() {
+        toolbar.setNavigationOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                filterData(query)
+                query?.let { searchRiwayat(it) }
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                filterData(newText)
+                if (newText.isNullOrEmpty()) {
+                    loadRiwayat()
+                } else {
+                    searchRiwayat(newText)
+                }
                 return true
             }
         })
     }
 
-    private fun loadData() {
-        // Contoh data dummy
-        allData = listOf(
-            RiwayatDeteksi(
-                id = 1,
-                imageUrl = "",
-                jenisBuah = "Buah Matang",
-                lokasi = "Riau",
-                tanggal = "25/11/2024",
-                kepercayaan = 94,
-                area = 2.5
-            ),
-            RiwayatDeteksi(
-                id = 2,
-                imageUrl = "",
-                jenisBuah = "Buah Matang",
-                lokasi = "Riau",
-                tanggal = "25/11/2024",
-                kepercayaan = 94,
-                area = 2.5
-            ),
-            RiwayatDeteksi(
-                id = 3,
-                imageUrl = "",
-                jenisBuah = "Buah Matang",
-                lokasi = "Riau",
-                tanggal = "25/11/2024",
-                kepercayaan = 94,
-                area = 2.5
-            ),
-            RiwayatDeteksi(
-                id = 4,
-                imageUrl = "",
-                jenisBuah = "Buah Matang",
-                lokasi = "Riau",
-                tanggal = "25/11/2024",
-                kepercayaan = 94,
-                area = 2.5
-            )
-        )
+    private fun loadRiwayat() {
+        lifecycleScope.launch {
+            try {
+                Log.d(TAG, "Loading riwayat...")
 
-        adapter.submitList(allData)
-        updateEmptyState()
-    }
+                val result = repository.getAllRiwayat()
 
-    private fun filterData(query: String?) {
-        val filteredList = if (query.isNullOrEmpty()) {
-            allData
-        } else {
-            allData.filter { riwayat ->
-                riwayat.jenisBuah.contains(query, ignoreCase = true) ||
-                        riwayat.lokasi.contains(query, ignoreCase = true) ||
-                        riwayat.tanggal.contains(query, ignoreCase = true)
+                result.fold(
+                    onSuccess = { list ->
+                        Log.d(TAG, "Berhasil load ${list.size} riwayat")
+
+                        if (list.isEmpty()) {
+                            showEmptyState()
+                        } else {
+                            showRecyclerView()
+                            adapter.submitList(list)
+                        }
+                    },
+                    onFailure = { error ->
+                        Log.e(TAG, "Gagal load riwayat", error)
+                        Toast.makeText(
+                            requireContext(),
+                            "Gagal memuat data: ${error.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        showEmptyState()
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception saat load riwayat", e)
+                Toast.makeText(
+                    requireContext(),
+                    "Error: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
-        adapter.submitList(filteredList)
-        updateEmptyState()
     }
 
-    private fun deleteRiwayat(riwayat: RiwayatDeteksi) {
+    private fun searchRiwayat(query: String) {
+        lifecycleScope.launch {
+            try {
+                val result = repository.searchRiwayat(query)
+
+                result.fold(
+                    onSuccess = { list ->
+                        if (list.isEmpty()) {
+                            showEmptyState()
+                        } else {
+                            showRecyclerView()
+                            adapter.submitList(list)
+                        }
+                    },
+                    onFailure = { error ->
+                        Toast.makeText(
+                            requireContext(),
+                            "Gagal mencari: ${error.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception saat search", e)
+            }
+        }
+    }
+
+    private fun showDeleteConfirmation(riwayatId: String) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Hapus Riwayat")
             .setMessage("Apakah Anda yakin ingin menghapus riwayat ini?")
             .setPositiveButton("Hapus") { _, _ ->
-                allData = allData.filter { it.id != riwayat.id }
-                adapter.submitList(allData)
-                updateEmptyState()
+                deleteRiwayat(riwayatId)
             }
             .setNegativeButton("Batal", null)
             .show()
     }
 
-    private fun updateEmptyState() {
-        if (allData.isEmpty()) {
-            binding.layoutEmpty.visibility = View.VISIBLE
-            binding.rvRiwayat.visibility = View.GONE
-        } else {
-            binding.layoutEmpty.visibility = View.GONE
-            binding.rvRiwayat.visibility = View.VISIBLE
-        }
-    }
+    private fun deleteRiwayat(riwayatId: String) {
+        lifecycleScope.launch {
+            try {
+                val result = repository.deleteRiwayat(riwayatId)
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-}
-
-// Data Class
-data class RiwayatDeteksi(
-    val id: Int,
-    val imageUrl: String,
-    val jenisBuah: String,
-    val lokasi: String,
-    val tanggal: String,
-    val kepercayaan: Int,
-    val area: Double
-)
-
-// Adapter
-class RiwayatAdapter(
-    private val onDeleteClick: (RiwayatDeteksi) -> Unit
-) : ListAdapter<RiwayatDeteksi, RiwayatAdapter.ViewHolder>(DIFF_CALLBACK) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemRiwayatBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return ViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
-
-    inner class ViewHolder(
-        private val binding: ItemRiwayatBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(riwayat: RiwayatDeteksi) {
-            binding.apply {
-                // Load image dengan Glide
-                Glide.with(itemView.context)
-                    .load(riwayat.imageUrl)
-                    .placeholder(R.drawable.ic_launcher_background)
-                    .error(R.drawable.ic_launcher_background)
-                    .into(ivRiwayat)
-
-                tvJenisBuah.text = riwayat.jenisBuah
-                tvLokasi.text = riwayat.lokasi
-                tvTanggal.text = riwayat.tanggal
-                tvKepercayaan.text = "Kepercayaan: ${riwayat.kepercayaan}%"
-                tvArea.text = "Area: ${riwayat.area} ha"
-
-                btnDelete.setOnClickListener {
-                    onDeleteClick(riwayat)
-                }
-
-                root.setOnClickListener {
-                    // Navigate to detail
-                }
+                result.fold(
+                    onSuccess = {
+                        Toast.makeText(
+                            requireContext(),
+                            "Riwayat berhasil dihapus",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        loadRiwayat()
+                    },
+                    onFailure = { error ->
+                        Toast.makeText(
+                            requireContext(),
+                            "Gagal menghapus: ${error.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception saat delete", e)
             }
         }
     }
 
-    companion object {
-        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<RiwayatDeteksi>() {
-            override fun areItemsTheSame(
-                oldItem: RiwayatDeteksi,
-                newItem: RiwayatDeteksi
-            ): Boolean = oldItem.id == newItem.id
+    private fun showEmptyState() {
+        rvRiwayat.visibility = View.GONE
+        layoutEmpty.visibility = View.VISIBLE
+    }
 
-            override fun areContentsTheSame(
-                oldItem: RiwayatDeteksi,
-                newItem: RiwayatDeteksi
-            ): Boolean = oldItem == newItem
-        }
+    private fun showRecyclerView() {
+        rvRiwayat.visibility = View.VISIBLE
+        layoutEmpty.visibility = View.GONE
     }
 }

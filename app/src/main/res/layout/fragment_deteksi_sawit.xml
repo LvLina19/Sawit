@@ -83,6 +83,7 @@
 
                 <!-- Button Pilih Foto -->
                 <androidx.cardview.widget.CardView
+                    app:cardBackgroundColor="@color/green_primary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="8dp"
@@ -99,7 +100,7 @@
                         android:textStyle="bold"
                         android:textSize="14sp"
                         android:backgroundTint="@color/green_primary"
-                        android:stateListAnimator="@null" />
+                     />
                 </androidx.cardview.widget.CardView>
 
                 <!-- Button Cek Kematangan -->

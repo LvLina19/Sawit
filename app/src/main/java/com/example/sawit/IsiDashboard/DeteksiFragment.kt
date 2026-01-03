@@ -23,6 +23,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sawit.R
 import com.example.sawit.ml.OnnxModelHelper
 import com.example.sawit.ml.PredictionResult
+import com.example.sawit.model.RiwayatDeteksiRepository
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import java.io.InputStream
 
@@ -44,12 +46,15 @@ class DeteksiFragment : Fragment() {
 
     private var selectedImageBitmap: Bitmap? = null
     private var onnxHelper: OnnxModelHelper? = null
+    private lateinit var repository: RiwayatDeteksiRepository
+
+    // Menyimpan hasil deteksi terakhir
+    private var lastPredictionResult: PredictionResult? = null
 
     companion object {
         private const val TAG = "DeteksiFragment"
     }
 
-    // Activity Result Launcher untuk memilih gambar
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -69,18 +74,17 @@ class DeteksiFragment : Fragment() {
         initViews(view)
         setupListeners()
         initializeModel()
+        initializeRepository()
 
         return view
     }
 
     private fun initViews(view: View) {
-        // Input views
         ivPreview = view.findViewById(R.id.ivPreview)
         btnPilihFoto = view.findViewById(R.id.btnPilihFoto)
         btnCekKematangan = view.findViewById(R.id.btnCekKematangan)
         btnBack = view.findViewById(R.id.btnBack)
 
-        // Result views
         resultContainer = view.findViewById(R.id.resultContainer)
         tvResultLabel = view.findViewById(R.id.tvResultLabel)
         tvConfidence = view.findViewById(R.id.tvConfidence)
@@ -89,11 +93,9 @@ class DeteksiFragment : Fragment() {
         btnScanLagi = view.findViewById(R.id.btnScanLagi)
         btnRiwayatDeteksi = view.findViewById(R.id.btnRiwayatDeteksi)
 
-        // Disable button cek kematangan awalnya
         btnCekKematangan.isEnabled = false
         btnCekKematangan.alpha = 0.5f
 
-        // Set default location
         tvLocation.text = "Riau, Indonesia"
     }
 
@@ -120,8 +122,7 @@ class DeteksiFragment : Fragment() {
         }
 
         btnRiwayatDeteksi.setOnClickListener {
-            // TODO: Navigate to history
-            Toast.makeText(requireContext(), "Fitur riwayat akan segera hadir", Toast.LENGTH_SHORT).show()
+            navigateToRiwayat()
         }
     }
 
@@ -129,11 +130,14 @@ class DeteksiFragment : Fragment() {
         try {
             onnxHelper = OnnxModelHelper(requireContext())
             Log.d(TAG, "Model berhasil dimuat")
-            Toast.makeText(requireContext(), "Model siap digunakan", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e(TAG, "Gagal memuat model", e)
             Toast.makeText(requireContext(), "Gagal memuat model: ${e.message}", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun initializeRepository() {
+        repository = RiwayatDeteksiRepository(requireContext())
     }
 
     private fun openGallery() {
@@ -147,18 +151,12 @@ class DeteksiFragment : Fragment() {
             selectedImageBitmap = BitmapFactory.decodeStream(inputStream)
 
             if (selectedImageBitmap != null) {
-                // Tampilkan preview
                 ivPreview.setImageBitmap(selectedImageBitmap)
-
-                // Enable button cek kematangan
                 btnCekKematangan.isEnabled = true
                 btnCekKematangan.alpha = 1.0f
-
-                // Hide result if showing
                 resultContainer.visibility = View.GONE
 
                 Log.d(TAG, "Gambar berhasil dipilih: ${selectedImageBitmap?.width}x${selectedImageBitmap?.height}")
-                Toast.makeText(requireContext(), "Gambar berhasil dipilih", Toast.LENGTH_SHORT).show()
             } else {
                 throw Exception("Bitmap null setelah decode")
             }
@@ -169,31 +167,28 @@ class DeteksiFragment : Fragment() {
     }
 
     private fun analyzeImage(bitmap: Bitmap) {
-        // Tampilkan loading
         btnCekKematangan.isEnabled = false
         btnCekKematangan.text = "Memproses..."
 
         Log.d(TAG, "=== Mulai Analisis ===")
-        Log.d(TAG, "Ukuran bitmap: ${bitmap.width}x${bitmap.height}")
 
         lifecycleScope.launch {
             try {
-                // Prediksi
                 val result = onnxHelper?.predictMaturity(bitmap)
 
-                // DEBUG: Log hasil prediksi
                 Log.d(TAG, "=== Hasil Prediksi ===")
                 Log.d(TAG, "Label: ${result?.label}")
-                Log.d(TAG, "Predicted Class: ${result?.predictedClass}")
                 Log.d(TAG, "Confidence: ${result?.confidence}%")
-                Log.d(TAG, "Error: ${result?.error}")
 
-                // Kembalikan state button
                 btnCekKematangan.isEnabled = true
                 btnCekKematangan.text = "Cek Kematangan"
 
                 if (result != null && result.error == null) {
+                    lastPredictionResult = result
                     showResult(result)
+
+                    // Simpan ke Firebase
+                    saveToFirebase(bitmap, result)
                 } else {
                     val errorMsg = result?.error ?: "Unknown error"
                     Log.e(TAG, "Error prediksi: $errorMsg")
@@ -216,39 +211,84 @@ class DeteksiFragment : Fragment() {
         }
     }
 
+    private fun saveToFirebase(bitmap: Bitmap, result: PredictionResult) {
+        lifecycleScope.launch {
+            try {
+                Log.d(TAG, "Menyimpan hasil deteksi...")
+
+                // Show loading
+                Toast.makeText(requireContext(), "Mengupload gambar...", Toast.LENGTH_SHORT).show()
+
+                val saveResult = repository.saveDeteksi(
+                    bitmap = bitmap,
+                    jenisBuah = result.label,
+                    lokasi = tvLocation.text.toString(),
+                    kepercayaan = result.confidence.toInt(),
+                    area = 0.0
+                )
+
+                saveResult.fold(
+                    onSuccess = { documentId ->
+                        Log.d(TAG, "Berhasil disimpan dengan ID: $documentId")
+                        Toast.makeText(
+                            requireContext(),
+                            "✅ Hasil deteksi berhasil disimpan",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    onFailure = { error ->
+                        Log.e(TAG, "Gagal menyimpan", error)
+
+                        val errorMsg = when {
+                            error.message?.contains("upload gambar", true) == true ->
+                                "Gagal upload gambar ke server"
+                            error.message?.contains("network", true) == true ->
+                                "Tidak ada koneksi internet"
+                            error.message?.contains("timeout", true) == true ->
+                                "Upload timeout, coba lagi"
+                            else -> error.message ?: "Error tidak diketahui"
+                        }
+
+                        Toast.makeText(
+                            requireContext(),
+                            "❌ Gagal: $errorMsg",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception saat menyimpan", e)
+                Toast.makeText(
+                    requireContext(),
+                    "Error: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
     private fun showResult(result: PredictionResult) {
         Log.d(TAG, "=== Menampilkan Hasil ===")
-        Log.d(TAG, "Label: ${result.label}")
-        Log.d(TAG, "Confidence: ${result.confidence}%")
 
-        // Update result label dengan styling
         tvResultLabel.text = result.label
 
-        // Set warna berdasarkan label (DISESUAIKAN untuk 3 label)
         val labelColor = when (result.label) {
-            "Mentah" -> android.graphics.Color.parseColor("#E53935") // Merah
-            "Matang" -> android.graphics.Color.parseColor("#43A047") // Hijau
-            "Kelewat Matang" -> android.graphics.Color.parseColor("#FB8C00") // Orange
-            else -> android.graphics.Color.parseColor("#757575") // Abu-abu
+            "Mentah" -> android.graphics.Color.parseColor("#E53935")
+            "Matang" -> android.graphics.Color.parseColor("#43A047")
+            "Kelewat Matang" -> android.graphics.Color.parseColor("#FB8C00")
+            else -> android.graphics.Color.parseColor("#757575")
         }
         tvResultLabel.setTextColor(labelColor)
 
-        // Update confidence (sudah dalam bentuk persen dari model)
         val confidenceInt = result.confidence.toInt().coerceIn(0, 100)
         tvConfidence.text = "$confidenceInt%"
         progressConfidence.progress = confidenceInt
 
-        Log.d(TAG, "Progress bar set to: $confidenceInt")
-
-        // Show result container with animation
         resultContainer.visibility = View.VISIBLE
         resultContainer.alpha = 0f
         resultContainer.animate()
             .alpha(1f)
             .setDuration(300)
             .start()
-
-        Log.d(TAG, "Result container ditampilkan")
     }
 
     private fun resetDetection() {
@@ -260,8 +300,29 @@ class DeteksiFragment : Fragment() {
 
         selectedImageBitmap?.recycle()
         selectedImageBitmap = null
+        lastPredictionResult = null
 
         ivPreview.setImageResource(R.drawable.ic_launcher_background)
+    }
+
+    private fun navigateToRiwayat() {
+        val fragment = RiwayatDeteksiFragment()
+
+        // Cara 1: Dapatkan container ID dari parent view fragment saat ini
+        val containerId = (view?.parent as? View)?.id
+
+        if (containerId != null && containerId != View.NO_ID) {
+            parentFragmentManager.beginTransaction()
+                .replace(containerId, fragment)
+                .addToBackStack(null)
+                .commit()
+        } else {
+            // Fallback: Coba cari activity dan ganti content
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(android.R.id.content, fragment)
+                ?.addToBackStack(null)
+                ?.commit()
+        }
     }
 
     override fun onDestroyView() {

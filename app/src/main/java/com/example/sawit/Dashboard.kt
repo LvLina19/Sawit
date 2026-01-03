@@ -3,6 +3,7 @@ package com.example.sawit
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -21,6 +22,7 @@ import org.opencv.android.OpenCVLoader  // TAMBAHKAN INI
 
 class Dashboard : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
+    private lateinit var fabChatBot: View
 
     private lateinit var navBeranda: LinearLayout
     private lateinit var navLaporan: LinearLayout
@@ -91,6 +93,7 @@ class Dashboard : AppCompatActivity() {
     }
 
     private fun initViews() {
+
         navBeranda = findViewById(R.id.navBeranda)
         navLaporan = findViewById(R.id.navLaporan)
         navDeteksi = findViewById(R.id.navDeteksi)
@@ -101,6 +104,7 @@ class Dashboard : AppCompatActivity() {
         iconLaporan = findViewById(R.id.iconLaporan)
         iconSearch = findViewById(R.id.iconSearch)
         iconPengaturan = findViewById(R.id.iconPengaturan)
+        fabChatBot = findViewById(R.id.fabChatBot)
 
         labelBeranda = findViewById(R.id.labelBeranda)
         labelLaporan = findViewById(R.id.labelLaporan)
@@ -122,6 +126,10 @@ class Dashboard : AppCompatActivity() {
         navDeteksi.setOnClickListener {
             loadFragment(DeteksiFragment())
             updateSelectedMenu("deteksi")
+        }
+        fabChatBot.setOnClickListener {
+            val intent = Intent(this, com.example.sawit.ChatBotActivity::class.java)
+            startActivity(intent)
         }
 
         navSearch.setOnClickListener {
