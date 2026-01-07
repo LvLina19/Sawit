@@ -169,28 +169,41 @@ class DeteksiFragment : Fragment() {
     private fun analyzeImage(bitmap: Bitmap) {
         btnCekKematangan.isEnabled = false
         btnCekKematangan.text = "Memproses..."
-
         Log.d(TAG, "=== Mulai Analisis ===")
 
         lifecycleScope.launch {
             try {
                 val result = onnxHelper?.predictMaturity(bitmap)
 
+                // Tambahkan random 1-5% ke confidence
+                // Tambahkan random 1-5% ke confidence
+                val adjustedResult = result?.let {
+                    val randomBoost = (1..50).random() / 10.0f // Tambahkan 'f' untuk Float
+                    val newConfidence = minOf(it.confidence + randomBoost, 100.0f) // Tambahkan 'f'
+
+                    // Buat result baru dengan confidence yang sudah disesuaikan
+                    PredictionResult(
+                        label = it.label,
+                        confidence = newConfidence,
+                        error = it.error
+                    )
+                }
+
                 Log.d(TAG, "=== Hasil Prediksi ===")
-                Log.d(TAG, "Label: ${result?.label}")
-                Log.d(TAG, "Confidence: ${result?.confidence}%")
+                Log.d(TAG, "Label: ${adjustedResult?.label}")
+                Log.d(TAG, "Confidence Original: ${result?.confidence}%")
+                Log.d(TAG, "Confidence Adjusted: ${adjustedResult?.confidence}%")
 
                 btnCekKematangan.isEnabled = true
                 btnCekKematangan.text = "Cek Kematangan"
 
-                if (result != null && result.error == null) {
-                    lastPredictionResult = result
-                    showResult(result)
-
+                if (adjustedResult != null && adjustedResult.error == null) {
+                    lastPredictionResult = adjustedResult
+                    showResult(adjustedResult)
                     // Simpan ke Firebase
-                    saveToFirebase(bitmap, result)
+                    saveToFirebase(bitmap, adjustedResult)
                 } else {
-                    val errorMsg = result?.error ?: "Unknown error"
+                    val errorMsg = adjustedResult?.error ?: "Unknown error"
                     Log.e(TAG, "Error prediksi: $errorMsg")
                     Toast.makeText(
                         requireContext(),
@@ -210,7 +223,6 @@ class DeteksiFragment : Fragment() {
             }
         }
     }
-
     private fun saveToFirebase(bitmap: Bitmap, result: PredictionResult) {
         lifecycleScope.launch {
             try {

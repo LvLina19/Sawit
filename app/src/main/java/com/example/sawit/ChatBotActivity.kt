@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import com.example.sawit.BuildConfig
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -59,7 +60,7 @@ class ChatBotActivity : AppCompatActivity() {
     private var timerAnimator: ValueAnimator? = null
 
     private val chatList = mutableListOf<ChatMessage>()
-    private val apiKey = "AIzaSyCX8AblhVcpRofRnuUWyBR4MgHXrsLw1hE"
+    private val apiKey = BuildConfig.GEMINI_API_KEY
 
     private val RECORD_AUDIO_PERMISSION_CODE = 101
     private var isRecording = false
@@ -443,12 +444,12 @@ class ChatBotActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val prompt = """
-                    Kamu adalah asisten pertanian kelapa sawit bernama SawitMaju Bot.
-                    Jawablah dengan bahasa sederhana, singkat, dan ramah petani.
+                Kamu adalah asisten pertanian kelapa sawit bernama SawitMaju Bot.
+                Jawablah dengan bahasa sederhana, singkat, dan ramah petani.
 
-                    Pertanyaan:
-                    $userMessage
-                """.trimIndent()
+                Pertanyaan:
+                $userMessage
+            """.trimIndent()
 
                 val request = GeminiRequest(
                     contents = listOf(
@@ -458,7 +459,12 @@ class ChatBotActivity : AppCompatActivity() {
                     )
                 )
 
-                val response = GeminiApiClient.apiService.generateContent(apiKey, request)
+                // Hapus parameter model, langsung panggil dengan apiKey saja
+                val response = GeminiApiClient.apiService.generateContent(
+                    apiKey = apiKey,
+                    request = request
+                )
+
 
                 if (response.error != null) {
                     throw Exception("API Error: ${response.error.message}")
@@ -476,7 +482,10 @@ class ChatBotActivity : AppCompatActivity() {
             } catch (e: retrofit2.HttpException) {
                 chatList.removeLast()
                 chatAdapter.notifyItemRemoved(chatList.size)
-                addBotMessage("❌ Error ${e.code()}: ${e.message()}")
+
+                // Tampilkan detail error yang lebih lengkap
+                val errorBody = e.response()?.errorBody()?.string()
+                addBotMessage("❌ Error ${e.code()}: $errorBody")
                 e.printStackTrace()
             } catch (e: Exception) {
                 chatList.removeLast()
@@ -485,9 +494,7 @@ class ChatBotActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }
-    }
-
-    override fun onDestroy() {
+    }    override fun onDestroy() {
         super.onDestroy()
         waveAnimator?.cancel()
         timerAnimator?.cancel()

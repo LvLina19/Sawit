@@ -38,6 +38,7 @@
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/etSearch"
                 android:layout_width="0dp"
+                android:background="@color/white"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 app:iconifiedByDefault="false"

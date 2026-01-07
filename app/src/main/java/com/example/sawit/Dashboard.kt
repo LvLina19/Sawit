@@ -22,7 +22,7 @@ import org.opencv.android.OpenCVLoader  // TAMBAHKAN INI
 
 class Dashboard : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var fabChatBot: View
+   private lateinit var fabChatBot: View
 
     private lateinit var navBeranda: LinearLayout
     private lateinit var navLaporan: LinearLayout
@@ -104,7 +104,7 @@ class Dashboard : AppCompatActivity() {
         iconLaporan = findViewById(R.id.iconLaporan)
         iconSearch = findViewById(R.id.iconSearch)
         iconPengaturan = findViewById(R.id.iconPengaturan)
-        fabChatBot = findViewById(R.id.fabChatBot)
+//        fabChatBot = findViewById(R.id.fabChatBot)
 
         labelBeranda = findViewById(R.id.labelBeranda)
         labelLaporan = findViewById(R.id.labelLaporan)
