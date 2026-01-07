@@ -6,6 +6,7 @@ import android.util.Log
 import com.example.sawit.api.ImgBBUploader
 import com.example.sawit.data.model.RiwayatDeteksiModel
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -13,11 +14,19 @@ import kotlinx.coroutines.tasks.await
 class RiwayatDeteksiRepository(private val context: Context) {
 
     private val firestore = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
     private val riwayatCollection = firestore.collection("riwayat_deteksi")
     private val imgBBUploader = ImgBBUploader()
 
     companion object {
         private const val TAG = "RiwayatRepository"
+    }
+
+    /**
+     * Dapatkan user ID yang sedang login
+     */
+    private fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
     }
 
     /**
@@ -31,9 +40,16 @@ class RiwayatDeteksiRepository(private val context: Context) {
         area: Double = 0.0
     ): Result<String> {
         return try {
-            Log.d(TAG, "Mulai menyimpan deteksi...")
+            // Cek apakah user sudah login
+            val userId = getCurrentUserId()
+            if (userId == null) {
+                Log.e(TAG, "User belum login")
+                return Result.failure(Exception("User belum login. Silakan login terlebih dahulu."))
+            }
 
-            // 1. Upload gambar ke ImgBB (bukan Firebase Storage)
+            Log.d(TAG, "Mulai menyimpan deteksi untuk user: $userId")
+
+            // 1. Upload gambar ke ImgBB
             Log.d(TAG, "Mengupload gambar ke ImgBB...")
             val uploadResult = imgBBUploader.uploadImage(bitmap)
 
@@ -44,7 +60,7 @@ class RiwayatDeteksiRepository(private val context: Context) {
 
             Log.d(TAG, "Gambar berhasil diupload: $imageUrl")
 
-            // 2. Buat data riwayat
+            // 2. Buat data riwayat dengan user ID yang login
             val riwayat = RiwayatDeteksiModel(
                 imageUrl = imageUrl,
                 jenisBuah = jenisBuah,
@@ -52,7 +68,7 @@ class RiwayatDeteksiRepository(private val context: Context) {
                 tanggal = Timestamp.now(),
                 kepercayaan = kepercayaan,
                 area = area,
-                userId = "default_user" // Ganti dengan user ID jika ada autentikasi
+                userId = userId
             )
 
             // 3. Simpan ke Firestore
@@ -68,11 +84,18 @@ class RiwayatDeteksiRepository(private val context: Context) {
     }
 
     /**
-     * Ambil semua riwayat deteksi
+     * Ambil semua riwayat deteksi milik user yang login
      */
     suspend fun getAllRiwayat(): Result<List<RiwayatDeteksiModel>> {
         return try {
+            val userId = getCurrentUserId()
+            if (userId == null) {
+                Log.e(TAG, "User belum login")
+                return Result.failure(Exception("User belum login"))
+            }
+
             val snapshot = riwayatCollection
+                .whereEqualTo("userId", userId)
                 .orderBy("tanggal", Query.Direction.DESCENDING)
                 .get()
                 .await()
@@ -88,7 +111,7 @@ class RiwayatDeteksiRepository(private val context: Context) {
                 }
             }
 
-            Log.d(TAG, "Berhasil mengambil ${riwayatList.size} riwayat")
+            Log.d(TAG, "Berhasil mengambil ${riwayatList.size} riwayat untuk user: $userId")
             Result.success(riwayatList)
         } catch (e: Exception) {
             Log.e(TAG, "Gagal mengambil riwayat", e)
@@ -97,11 +120,25 @@ class RiwayatDeteksiRepository(private val context: Context) {
     }
 
     /**
-     * Hapus riwayat berdasarkan ID
-     * Catatan: Gambar di ImgBB tidak bisa dihapus via API (hanya bisa manual di dashboard)
+     * Hapus riwayat berdasarkan ID (hanya jika milik user yang login)
      */
     suspend fun deleteRiwayat(riwayatId: String): Result<Unit> {
         return try {
+            val userId = getCurrentUserId()
+            if (userId == null) {
+                Log.e(TAG, "User belum login")
+                return Result.failure(Exception("User belum login"))
+            }
+
+            // Cek apakah riwayat milik user yang login
+            val doc = riwayatCollection.document(riwayatId).get().await()
+            val riwayat = doc.toObject(RiwayatDeteksiModel::class.java)
+
+            if (riwayat?.userId != userId) {
+                Log.e(TAG, "Tidak dapat menghapus riwayat milik user lain")
+                return Result.failure(Exception("Anda tidak memiliki akses untuk menghapus riwayat ini"))
+            }
+
             // Hapus document dari Firestore
             riwayatCollection.document(riwayatId).delete().await()
 
@@ -116,11 +153,18 @@ class RiwayatDeteksiRepository(private val context: Context) {
     }
 
     /**
-     * Cari riwayat berdasarkan query
+     * Cari riwayat berdasarkan query (hanya milik user yang login)
      */
     suspend fun searchRiwayat(query: String): Result<List<RiwayatDeteksiModel>> {
         return try {
+            val userId = getCurrentUserId()
+            if (userId == null) {
+                Log.e(TAG, "User belum login")
+                return Result.failure(Exception("User belum login"))
+            }
+
             val snapshot = riwayatCollection
+                .whereEqualTo("userId", userId)
                 .orderBy("tanggal", Query.Direction.DESCENDING)
                 .get()
                 .await()
@@ -136,17 +180,24 @@ class RiwayatDeteksiRepository(private val context: Context) {
                 }
             }
 
-            // Filter di client side karena Firestore tidak support full-text search
+            // Filter di client side
             val filteredList = allRiwayat.filter { riwayat ->
                 riwayat.jenisBuah.contains(query, ignoreCase = true) ||
                         riwayat.lokasi.contains(query, ignoreCase = true)
             }
 
-            Log.d(TAG, "Hasil pencarian '${query}': ${filteredList.size} item")
+            Log.d(TAG, "Hasil pencarian '${query}': ${filteredList.size} item untuk user: $userId")
             Result.success(filteredList)
         } catch (e: Exception) {
             Log.e(TAG, "Gagal mencari riwayat", e)
             Result.failure(e)
         }
+    }
+
+    /**
+     * Cek apakah user sudah login
+     */
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null
     }
 }

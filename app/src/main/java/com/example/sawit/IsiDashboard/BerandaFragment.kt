@@ -1,8 +1,10 @@
 package com.example.sawit.IsiDashboard
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +19,10 @@ import com.bumptech.glide.Glide
 import com.example.sawit.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.load.DataSource
 
 
 class BerandaFragment : Fragment() {
@@ -33,15 +39,11 @@ class BerandaFragment : Fragment() {
     private lateinit var cardCatatPanen: CardView
     private lateinit var cardEdukasi: CardView
     private lateinit var cardVisualisasi: CardView
-
-    // Firebase
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
-
     private val handler = Handler(Looper.getMainLooper())
     private var currentPage = 0
 
-    // List gambar banner
     private val bannerImages = listOf(
         R.drawable.banner_sawit,
         R.drawable.gambar_lahan_sawit,
@@ -91,46 +93,58 @@ class BerandaFragment : Fragment() {
 
     private fun loadUserProfile() {
         val currentUser = auth.currentUser
+        Log.d("ProfileDebug", "Starting loadUserProfile, currentUser: ${currentUser?.uid}")
 
         if (currentUser != null) {
-            // User sudah login, load data dari Firestore
             firestore.collection("users")
                 .document(currentUser.uid)
                 .get()
                 .addOnSuccessListener { document ->
+                    Log.d("ProfileDebug", "Document fetched, exists: ${document.exists()}")
+
                     if (document.exists()) {
-                        // Load nama user
                         val userName = document.getString("name") ?: "Kawan Sawit"
                         tvGreeting.text = "Hi, $userName"
 
-                        // Load foto profil
-                        val profileImageUrl = document.getString("profileImage")
+                        val profileImageUrl = document.getString("profile")
+                        Log.d("ProfileDebug", "Profile URL: '$profileImageUrl'")
+
                         if (!profileImageUrl.isNullOrEmpty()) {
-                            // Load foto dari ImgBB menggunakan Glide
+                            Log.d("ProfileDebug", "Loading image with Glide")
+
                             Glide.with(this)
                                 .load(profileImageUrl)
-                                .placeholder(R.drawable.profile) // Gambar default saat loading
-                                .error(R.drawable.profile) // Gambar default jika error
-                                .circleCrop() // Membuat gambar berbentuk bulat
+                                .placeholder(R.drawable.profile)
+                                .error(R.drawable.profile)
+                                .circleCrop()
+                                .timeout(15000)
                                 .into(ivProfile)
                         } else {
-                            // Jika tidak ada foto, pakai default
+                            Log.d("ProfileDebug", "URL is null or empty, using default")
                             ivProfile.setImageResource(R.drawable.profile)
                         }
+                    } else {
+                        Log.e("ProfileDebug", "Document does not exist")
+                        tvGreeting.text = "Hi, Kawan Sawit"
+                        ivProfile.setImageResource(R.drawable.profile)
                     }
                 }
                 .addOnFailureListener { e ->
+                    Log.e("ProfileDebug", "Failed to fetch document: ${e.message}")
                     Toast.makeText(requireContext(), "Gagal memuat profil: ${e.message}", Toast.LENGTH_SHORT).show()
-                    // Tetap tampilkan default
                     tvGreeting.text = "Hi, Kawan Sawit"
                     ivProfile.setImageResource(R.drawable.profile)
                 }
         } else {
-            // User belum login
+            Log.e("ProfileDebug", "Current user is NULL")
             tvGreeting.text = "Hi, Kawan Sawit"
             ivProfile.setImageResource(R.drawable.profile)
         }
+    }    private fun setDefaultProfile() {
+        tvGreeting.text = "Hi, Kawan Sawit"
+        ivProfile.setImageResource(R.drawable.profile)
     }
+
 
     private fun setupBanner() {
         // Setup adapter

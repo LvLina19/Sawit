@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import com.example.sawit.BuildConfig
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -26,12 +27,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sawit.model.ChatMessage
-import com.example.sawit.model.GeminiApiClient
 import com.example.sawit.utils.GeminiRequest
 import com.example.sawit.utils.Content
 import com.example.sawit.utils.Part
+import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+
+
 
 class ChatBotActivity : AppCompatActivity() {
 
@@ -59,7 +62,7 @@ class ChatBotActivity : AppCompatActivity() {
     private var timerAnimator: ValueAnimator? = null
 
     private val chatList = mutableListOf<ChatMessage>()
-    private val apiKey = "AIzaSyCX8AblhVcpRofRnuUWyBR4MgHXrsLw1hE"
+    private val apiKey = BuildConfig.GEMINI_API_KEY
 
     private val RECORD_AUDIO_PERMISSION_CODE = 101
     private var isRecording = false
@@ -436,58 +439,69 @@ class ChatBotActivity : AppCompatActivity() {
     }
 
     private fun askGeminiAI(userMessage: String) {
+        if (apiKey.isEmpty()) {
+            addBotMessage("❌ API Key belum dikonfigurasi di local.properties!")
+            return
+        }
+
+        // Menampilkan indikator loading (typing)
+        val loadingMessagePosition = chatList.size
         chatList.add(ChatMessage("⏳ Bot sedang mengetik...", false))
-        chatAdapter.notifyItemInserted(chatList.size - 1)
+        chatAdapter.notifyItemInserted(loadingMessagePosition)
         recyclerView.scrollToPosition(chatList.size - 1)
 
         lifecycleScope.launch {
             try {
-                val prompt = """
-                    Kamu adalah asisten pertanian kelapa sawit bernama SawitMaju Bot.
-                    Jawablah dengan bahasa sederhana, singkat, dan ramah petani.
+                // 1. Susun Prompt agar bot berakting sebagai ahli sawit
+                val systemPrompt = """
+                Kamu adalah asisten pertanian kelapa sawit bernama SawitMaju Bot.
+                Jawablah dengan bahasa sederhana, singkat, dan ramah petani.
+                Pertanyaan: $userMessage
+            """.trimIndent()
 
-                    Pertanyaan:
-                    $userMessage
-                """.trimIndent()
-
+                // 2. Bungkus ke dalam Request Object (Sesuai struktur JSON Gemini)
                 val request = GeminiRequest(
                     contents = listOf(
                         Content(
-                            parts = listOf(Part(text = prompt))
+                            parts = listOf(Part(text = systemPrompt))
                         )
                     )
                 )
 
-                val response = GeminiApiClient.apiService.generateContent(apiKey, request)
 
-                if (response.error != null) {
-                    throw Exception("API Error: ${response.error.message}")
-                }
+                val response = GeminiApiClient.apiService.generateContent(
+                    apiKey = apiKey,
+                    request = request
+                )
+                // 4. Hapus pesan loading
+                chatList.removeAt(loadingMessagePosition)
+                chatAdapter.notifyItemRemoved(loadingMessagePosition)
 
+                // 5. Ambil balasan teks dari response
                 val reply = response.candidates?.firstOrNull()
                     ?.content?.parts?.firstOrNull()
                     ?.text?.trim()
-                    ?: "🤖 Maaf, saya belum bisa menjawab."
+                    ?: "🤖 Maaf, saya tidak mengerti maksudnya."
 
-                chatList.removeLast()
-                chatAdapter.notifyItemRemoved(chatList.size)
                 addBotMessage(reply)
 
             } catch (e: retrofit2.HttpException) {
-                chatList.removeLast()
-                chatAdapter.notifyItemRemoved(chatList.size)
-                addBotMessage("❌ Error ${e.code()}: ${e.message()}")
-                e.printStackTrace()
+                chatList.removeAt(loadingMessagePosition)
+                chatAdapter.notifyItemRemoved(loadingMessagePosition)
+
+                val errorBody = e.response()?.errorBody()?.string()
+                addBotMessage("❌ Error API (404/400): Pastikan nama model di Service sudah benar (:generateContent)")
+                android.util.Log.e("GeminiError", "Detail: $errorBody")
             } catch (e: Exception) {
-                chatList.removeLast()
-                chatAdapter.notifyItemRemoved(chatList.size)
-                addBotMessage("❌ Terjadi kesalahan: ${e.message}")
-                e.printStackTrace()
+                chatList.removeAt(loadingMessagePosition)
+                chatAdapter.notifyItemRemoved(loadingMessagePosition)
+                addBotMessage("❌ Koneksi Gagal: ${e.localizedMessage}")
             }
         }
     }
 
     override fun onDestroy() {
+
         super.onDestroy()
         waveAnimator?.cancel()
         timerAnimator?.cancel()

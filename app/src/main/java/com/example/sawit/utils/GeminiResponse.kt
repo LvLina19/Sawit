@@ -2,27 +2,19 @@ package com.example.sawit.utils
 
 import com.google.gson.annotations.SerializedName
 
-
-// Response Models
 data class GeminiResponse(
-    @SerializedName("candidates")
-    val candidates: List<Candidate>?,
-    @SerializedName("error")
-    val error: ErrorResponse?
+    val candidates: List<Candidate>?
 )
 
 data class Candidate(
-    @SerializedName("content")
-    val content: Content?,
-    @SerializedName("finishReason")
-    val finishReason: String?
+    val content: ContentResponse
 )
 
-data class ErrorResponse(
-    @SerializedName("code")
-    val code: Int,
-    @SerializedName("message")
-    val message: String,
-    @SerializedName("status")
-    val status: String
+data class ContentResponse(
+    val parts: List<PartResponse>
 )
+
+data class PartResponse(
+    val text: String
+)
+

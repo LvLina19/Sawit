@@ -22,7 +22,7 @@ import org.opencv.android.OpenCVLoader  // TAMBAHKAN INI
 
 class Dashboard : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var fabChatBot: View
+   private lateinit var fabChatBot: View
 
     private lateinit var navBeranda: LinearLayout
     private lateinit var navLaporan: LinearLayout

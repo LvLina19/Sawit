@@ -1,5 +1,6 @@
 package com.example.sawit.IsiDashboard
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -46,6 +47,12 @@ class RiwayatDeteksiFragment : Fragment() {
 
         repository = RiwayatDeteksiRepository(requireContext())
 
+        // Cek apakah user sudah login
+        if (!repository.isUserLoggedIn()) {
+            showLoginRequired()
+            return view
+        }
+
         loadRiwayat()
 
         return view
@@ -89,7 +96,36 @@ class RiwayatDeteksiFragment : Fragment() {
         })
     }
 
+    private fun showLoginRequired() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Login Diperlukan")
+            .setMessage("Anda harus login terlebih dahulu untuk melihat riwayat deteksi.")
+            .setPositiveButton("Login") { _, _ ->
+                // Redirect ke halaman login
+                // Sesuaikan dengan nama Activity login Anda
+                try {
+                    val intent = Intent(requireContext(), Class.forName("com.example.sawit.LoginActivity"))
+                    startActivity(intent)
+                    requireActivity().finish()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Gagal membuka LoginActivity", e)
+                    Toast.makeText(requireContext(), "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Kembali") { _, _ ->
+                parentFragmentManager.popBackStack()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
     private fun loadRiwayat() {
+        // Cek lagi apakah user masih login
+        if (!repository.isUserLoggedIn()) {
+            showLoginRequired()
+            return
+        }
+
         lifecycleScope.launch {
             try {
                 Log.d(TAG, "Loading riwayat...")
@@ -109,12 +145,18 @@ class RiwayatDeteksiFragment : Fragment() {
                     },
                     onFailure = { error ->
                         Log.e(TAG, "Gagal load riwayat", error)
-                        Toast.makeText(
-                            requireContext(),
-                            "Gagal memuat data: ${error.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        showEmptyState()
+
+                        // Jika error karena tidak login
+                        if (error.message?.contains("belum login", ignoreCase = true) == true) {
+                            showLoginRequired()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "Gagal memuat data: ${error.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            showEmptyState()
+                        }
                     }
                 )
             } catch (e: Exception) {
@@ -129,6 +171,12 @@ class RiwayatDeteksiFragment : Fragment() {
     }
 
     private fun searchRiwayat(query: String) {
+        // Cek apakah user masih login
+        if (!repository.isUserLoggedIn()) {
+            showLoginRequired()
+            return
+        }
+
         lifecycleScope.launch {
             try {
                 val result = repository.searchRiwayat(query)
@@ -143,11 +191,16 @@ class RiwayatDeteksiFragment : Fragment() {
                         }
                     },
                     onFailure = { error ->
-                        Toast.makeText(
-                            requireContext(),
-                            "Gagal mencari: ${error.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // Jika error karena tidak login
+                        if (error.message?.contains("belum login", ignoreCase = true) == true) {
+                            showLoginRequired()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "Gagal mencari: ${error.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 )
             } catch (e: Exception) {
@@ -168,6 +221,12 @@ class RiwayatDeteksiFragment : Fragment() {
     }
 
     private fun deleteRiwayat(riwayatId: String) {
+        // Cek apakah user masih login
+        if (!repository.isUserLoggedIn()) {
+            showLoginRequired()
+            return
+        }
+
         lifecycleScope.launch {
             try {
                 val result = repository.deleteRiwayat(riwayatId)
@@ -182,11 +241,22 @@ class RiwayatDeteksiFragment : Fragment() {
                         loadRiwayat()
                     },
                     onFailure = { error ->
-                        Toast.makeText(
-                            requireContext(),
-                            "Gagal menghapus: ${error.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // Jika error karena tidak login atau tidak punya akses
+                        if (error.message?.contains("belum login", ignoreCase = true) == true) {
+                            showLoginRequired()
+                        } else if (error.message?.contains("tidak memiliki akses", ignoreCase = true) == true) {
+                            Toast.makeText(
+                                requireContext(),
+                                "Anda tidak dapat menghapus riwayat ini",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "Gagal menghapus: ${error.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 )
             } catch (e: Exception) {
@@ -203,5 +273,13 @@ class RiwayatDeteksiFragment : Fragment() {
     private fun showRecyclerView() {
         rvRiwayat.visibility = View.VISIBLE
         layoutEmpty.visibility = View.GONE
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reload data saat fragment kembali ditampilkan
+        if (repository.isUserLoggedIn()) {
+            loadRiwayat()
+        }
     }
 }
