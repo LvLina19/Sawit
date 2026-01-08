@@ -104,7 +104,7 @@ class Dashboard : AppCompatActivity() {
         iconLaporan = findViewById(R.id.iconLaporan)
         iconSearch = findViewById(R.id.iconSearch)
         iconPengaturan = findViewById(R.id.iconPengaturan)
-//        fabChatBot = findViewById(R.id.fabChatBot)
+       fabChatBot = findViewById(R.id.fabChatBot)
 
         labelBeranda = findViewById(R.id.labelBeranda)
         labelLaporan = findViewById(R.id.labelLaporan)

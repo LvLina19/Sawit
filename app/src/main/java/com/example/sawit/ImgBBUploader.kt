@@ -28,9 +28,10 @@ class ImgBBUploader {
 
     suspend fun uploadImage(bitmap: Bitmap): Result<String> = withContext(Dispatchers.IO) {
         try {
+            //debug
             Log.d(TAG, "Mulai upload ke ImgBB...")
 
-            // Convert bitmap ke Base64
+            // Convert Base64
             val base64Image = bitmapToBase64(bitmap)
 
             // Buat request body
@@ -48,7 +49,7 @@ class ImgBBUploader {
             // Execute request
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string()
-
+            //debug
             Log.d(TAG, "Response code: ${response.code}")
 
             if (response.isSuccessful && responseBody != null) {
@@ -57,7 +58,7 @@ class ImgBBUploader {
                 if (jsonResponse.getBoolean("success")) {
                     val imageUrl = jsonResponse.getJSONObject("data")
                         .getString("url")
-
+                    //debug
                     Log.d(TAG, "Upload berhasil: $imageUrl")
                     Result.success(imageUrl)
                 } else {

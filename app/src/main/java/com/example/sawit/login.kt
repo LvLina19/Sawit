@@ -47,27 +47,22 @@ class login : AppCompatActivity() {
         private const val TAG = "LoginActivity"
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) { //core function
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
-        // Initialize Views
         initViews()
 
-        // Setup Google Sign-In
         setupGoogleSignIn()
 
-        // Setup Click Listeners
         setupClickListeners()
     }
 
     private fun initViews() {
         imgLoading = findViewById(R.id.imgLoading)
         rotateAnim = AnimationUtils.loadAnimation(this, R.anim.rotate_loading)
-
         loadingOverlay = findViewById(R.id.loadingOverlay)
         inputEmail = findViewById(R.id.et_username_email)
         inputPassword = findViewById(R.id.et_password)
@@ -78,54 +73,24 @@ class login : AppCompatActivity() {
         Tv_Lupa_Password = findViewById(R.id.Tv_Lupa_Password)
     }
 
-    private fun setupGoogleSignIn() {
-        // Configure Google Sign-In
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken("266121819468-hlkfoumi163lscbuocgfoiqm25ou7frk.apps.googleusercontent.com")
-            .requestEmail()
-            .build()
 
-        googleSignInClient = GoogleSignIn.getClient(this, gso)
-
-        // Setup Activity Result Launcher
-        googleSignInLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                try {
-                    val account = task.getResult(ApiException::class.java)
-                    firebaseAuthWithGoogle(account.idToken!!)
-                } catch (e: ApiException) {
-                    showLoading(false)
-                    Log.e(TAG, "Google sign in failed", e)
-                    Toast.makeText(
-                        this,
-                        "Login Google gagal: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            } else {
-                showLoading(false)
-            }
-        }
-    }
 
     private fun setupClickListeners() {
-        // Login dengan Email & Password
+        //login email dn pass
         btnEmailLogin.setOnClickListener {
             loginWithEmail()
         }
 
-        // Login dengan Google
+        // login ggole
         btnGoogle.setOnClickListener {
             loginWithGoogle()
         }
 
-        // Navigasi ke Register
+        // nav ke regrister
         tvRegister.setOnClickListener {
             startActivity(Intent(this, regris::class.java))
         }
+        // nav ke Lupa_Password
 
         Tv_Lupa_Password.setOnClickListener {
             startActivity(Intent(this, LupaPassword_activity::class.java))
@@ -136,24 +101,23 @@ class login : AppCompatActivity() {
         val email = inputEmail.text.toString().trim()
         val password = inputPassword.text.toString().trim()
 
-        // Validasi input
+
         if (!validateInput(email, password)) {
             return
         }
 
-        // Tampilkan loading
+        // loading kece awak
         showLoading(true)
 
         // Log untuk debugging
         Log.d(TAG, "Attempting login with email: $email")
 
-        // Login ke Firebase
+//         Login ke Firebase
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 showLoading(false)
-
                 if (task.isSuccessful) {
-                    // Login berhasil
+
                     val user = auth.currentUser
                     Log.d(TAG, "Login successful for user: ${user?.uid}")
 
@@ -174,7 +138,7 @@ class login : AppCompatActivity() {
                             "Email atau password yang Anda masukkan salah. Silakan coba lagi."
                         }
                         is FirebaseAuthInvalidUserException -> {
-                            // User tidak ditemukan atau disabled
+                            // user gada
                             when (exception.errorCode) {
                                 "ERROR_USER_NOT_FOUND" ->
                                     "Email tidak terdaftar. Silakan daftar terlebih dahulu."
@@ -185,7 +149,6 @@ class login : AppCompatActivity() {
                             }
                         }
                         else -> {
-                            // Error lainnya
                             when {
                                 exception?.message?.contains("network", ignoreCase = true) == true ->
                                     "Tidak ada koneksi internet. Periksa koneksi Anda."
@@ -219,9 +182,41 @@ class login : AppCompatActivity() {
             val signInIntent = googleSignInClient.signInIntent
             googleSignInLauncher.launch(signInIntent)
         }
+    } // ini dulu
+    private fun setupGoogleSignIn() { //tampil pilihan akun google
+        // Configure Google Sign-In
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken("266121819468-hlkfoumi163lscbuocgfoiqm25ou7frk.apps.googleusercontent.com")
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        // Setup Activity Result Launcher
+        googleSignInLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    val account = task.getResult(ApiException::class.java)
+                    firebaseAuthWithGoogle(account.idToken!!)
+                } catch (e: ApiException) {
+                    showLoading(false)
+                    Log.e(TAG, "Google sign in failed", e)
+                    Toast.makeText(
+                        this,
+                        "Login Google gagal: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } else {
+                showLoading(false)
+            }
+        }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
+    private fun firebaseAuthWithGoogle(idToken: String) { // kalo dah beres maka kita dahsboard
         showLoading(true)
         Log.d(TAG, "Authenticating with Google")
 
@@ -291,7 +286,6 @@ class login : AppCompatActivity() {
         inputEmail.isEnabled = !isLoading
         inputPassword.isEnabled = !isLoading
     }
-
 
     private fun goToMain() {
         val intent = Intent(this, Dashboard::class.java)

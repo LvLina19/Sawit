@@ -30,9 +30,9 @@ class EdukasiFragment : Fragment() {
     private lateinit var tvErrorMessage: TextView
     private lateinit var videoAdapter: VideoAdapter
 
-    // GANTI DENGAN API KEY ANDA
-    private val API_KEY = "AIzaSyBLZ3nCR8V8Di2hyvUSaDzKCcQgQoIWW_c"
-    private val PLAYLIST_ID = "PLoIys-gfSLGEFi73_Ao1eVAwYCqlD9420"
+
+    private val API_KEY = "AIzaSyBLZ3nCR8V8Di2hyvUSaDzKCcQgQoIWW_c" //API BERita
+    private val PLAYLIST_ID = "PLoIys-gfSLGEFi73_Ao1eVAwYCqlD9420" //API YT
 
     // Game URLs
     private val GAME1_URL = "https://html5.gamedistribution.com/a57ef0ff6ec44d9889500893ba619b56/?gd_sdk_referrer_url=https://www.example.com/games/smart-farmer"
@@ -137,7 +137,6 @@ class EdukasiFragment : Fragment() {
 
     private fun loadYouTubeVideos() {
         showLoading(true)
-
         RetrofitClient.youtubeApi.getPlaylistVideos(
             playlistId = PLAYLIST_ID,
             apiKey = API_KEY

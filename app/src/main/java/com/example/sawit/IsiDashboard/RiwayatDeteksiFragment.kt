@@ -120,7 +120,7 @@ class RiwayatDeteksiFragment : Fragment() {
     }
 
     private fun loadRiwayat() {
-        // Cek lagi apakah user masih login
+        // Cek login
         if (!repository.isUserLoggedIn()) {
             showLoginRequired()
             return

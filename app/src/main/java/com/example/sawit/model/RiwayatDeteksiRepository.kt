@@ -96,7 +96,6 @@ class RiwayatDeteksiRepository(private val context: Context) {
 
             val snapshot = riwayatCollection
                 .whereEqualTo("userId", userId)
-                .orderBy("tanggal", Query.Direction.DESCENDING)
                 .get()
                 .await()
 
@@ -110,6 +109,8 @@ class RiwayatDeteksiRepository(private val context: Context) {
                     null
                 }
             }
+                // Sort di client side
+                .sortedByDescending { it.tanggal }
 
             Log.d(TAG, "Berhasil mengambil ${riwayatList.size} riwayat untuk user: $userId")
             Result.success(riwayatList)
@@ -118,7 +119,6 @@ class RiwayatDeteksiRepository(private val context: Context) {
             Result.failure(e)
         }
     }
-
     /**
      * Hapus riwayat berdasarkan ID (hanya jika milik user yang login)
      */
@@ -165,7 +165,6 @@ class RiwayatDeteksiRepository(private val context: Context) {
 
             val snapshot = riwayatCollection
                 .whereEqualTo("userId", userId)
-                .orderBy("tanggal", Query.Direction.DESCENDING)
                 .get()
                 .await()
 
@@ -179,6 +178,8 @@ class RiwayatDeteksiRepository(private val context: Context) {
                     null
                 }
             }
+                // Sort di client side
+                .sortedByDescending { it.tanggal }
 
             // Filter di client side
             val filteredList = allRiwayat.filter { riwayat ->
@@ -193,7 +194,6 @@ class RiwayatDeteksiRepository(private val context: Context) {
             Result.failure(e)
         }
     }
-
     /**
      * Cek apakah user sudah login
      */
