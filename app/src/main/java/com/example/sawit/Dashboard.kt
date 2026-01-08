@@ -18,11 +18,11 @@ import com.example.sawit.IsiDashboard.LaporanFragment
 import com.example.sawit.IsiDashboard.PengaturanFragment
 import com.example.sawit.IsiDashboard.EdukasiFragment
 import com.google.firebase.auth.FirebaseAuth
-import org.opencv.android.OpenCVLoader  // TAMBAHKAN INI
+import org.opencv.android.OpenCVLoader
 
 class Dashboard : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-   private lateinit var fabChatBot: View
+    private lateinit var fabChatBot: View
 
     private lateinit var navBeranda: LinearLayout
     private lateinit var navLaporan: LinearLayout
@@ -56,7 +56,7 @@ class Dashboard : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TAMBAHKAN: Inisialisasi OpenCV sekali lagi untuk memastikan
+        // Inisialisasi OpenCV sekali lagi untuk memastikan
         if (!OpenCVLoader.initDebug()) {
             Log.e(TAG, "Gagal menginisialisasi OpenCV")
             Toast.makeText(this, "Gagal memuat OpenCV library", Toast.LENGTH_LONG).show()
@@ -79,6 +79,7 @@ class Dashboard : AppCompatActivity() {
         // Load default fragment (Beranda)
         if (savedInstanceState == null) {
             loadFragment(BerandaFragment())
+            updateSelectedMenu("beranda")
         }
 
         // Setup click listeners
@@ -93,7 +94,6 @@ class Dashboard : AppCompatActivity() {
     }
 
     private fun initViews() {
-
         navBeranda = findViewById(R.id.navBeranda)
         navLaporan = findViewById(R.id.navLaporan)
         navDeteksi = findViewById(R.id.navDeteksi)
@@ -104,7 +104,7 @@ class Dashboard : AppCompatActivity() {
         iconLaporan = findViewById(R.id.iconLaporan)
         iconSearch = findViewById(R.id.iconSearch)
         iconPengaturan = findViewById(R.id.iconPengaturan)
-       fabChatBot = findViewById(R.id.fabChatBot)
+        fabChatBot = findViewById(R.id.fabChatBot)
 
         labelBeranda = findViewById(R.id.labelBeranda)
         labelLaporan = findViewById(R.id.labelLaporan)
@@ -127,6 +127,7 @@ class Dashboard : AppCompatActivity() {
             loadFragment(DeteksiFragment())
             updateSelectedMenu("deteksi")
         }
+
         fabChatBot.setOnClickListener {
             val intent = Intent(this, com.example.sawit.ChatBotActivity::class.java)
             startActivity(intent)
@@ -150,7 +151,10 @@ class Dashboard : AppCompatActivity() {
         }
     }
 
-    private fun updateSelectedMenu(selected: String) {
+    /**
+     * Update selected menu - DIJADIKAN PUBLIC agar bisa dipanggil dari Fragment
+     */
+    fun updateSelectedMenu(selected: String) {
         val activeColor = ContextCompat.getColor(this, R.color.green_primary)
         val inactiveColor = ContextCompat.getColor(this, R.color.gray_inactive)
 
@@ -189,7 +193,10 @@ class Dashboard : AppCompatActivity() {
         }
     }
 
-    private fun loadFragment(fragment: Fragment) {
+    /**
+     * Load fragment - DIJADIKAN PUBLIC agar bisa dipanggil dari Fragment lain
+     */
+    fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .commit()

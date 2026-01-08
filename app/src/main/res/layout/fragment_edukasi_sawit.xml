@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#FFFFFF">
+
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -34,8 +35,9 @@
             android:fontFamily="@font/montserrat" />
     </androidx.appcompat.widget.Toolbar>
 
-    <!-- ScrollView Content -->
+    <!-- ScrollView Content - TAMBAHKAN ID -->
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -64,7 +66,6 @@
                     android:textColor="#4CAF50"
                     android:textStyle="bold"
                     android:fontFamily="@font/montserrat" />
-
                 <TextView
                     android:id="@+id/btnLihatSemuaArticle"
                     android:layout_width="wrap_content"
@@ -123,8 +124,7 @@
                                 android:ellipsize="end"
                                 android:fontFamily="@font/montserrat"
                                 android:maxLines="2"
-                                android:text="Gapki Menjabarkan Peluang dan
-                                Tantangan Bisnis CPO di 2026"
+                                android:text="Gapki Menjabarkan Peluang dan Tantangan Bisnis CPO di 2026"
                                 android:textColor="#333333"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -202,9 +202,11 @@
                                 android:ellipsize="end"
                                 android:fontFamily="@font/montserrat"
                                 android:maxLines="3"
-                                android:text="Jakarta — Komitmen industri sawit Indonesia dalam melindungi pekerja perempuan dan memastikan tidak adanya pekerja anak kembali ditegaskan dalam Diskusi Forwatan bertajuk “Industri Sawit."
+                                android:text="Jakarta — Komitmen industri sawit Indonesia dalam melindungi pekerja perempuan dan memastikan tidak adanya pekerja anak kembali ditegaskan dalam Diskusi Forwatan bertajuk Industri Sawit."
                                 android:textColor="#666666"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+
+                             />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -363,7 +365,5 @@
                 android:nestedScrollingEnabled="false" />
         </LinearLayout>
     </ScrollView>
-
-
 
 </LinearLayout>

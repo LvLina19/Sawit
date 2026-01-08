@@ -1,19 +1,29 @@
 package com.example.sawit.pengaturan
+
+import android.Manifest
+import android.app.AlarmManager
 import android.app.TimePickerDialog
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sawit.R
-import com.example.sawit.model.UserSettings
-import com.example.sawit.model.NotificationSchedule
 import com.example.sawit.adapter.NotificationScheduleAdapter
+import com.example.sawit.model.NotificationSchedule
+import com.example.sawit.model.UserSettings
 import com.example.sawit.utils.AlarmScheduler
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,6 +47,11 @@ class NotifikasiFragment : Fragment() {
     private val userId by lazy { auth.currentUser?.uid ?: "" }
     private val notificationSchedules = mutableListOf<NotificationSchedule>()
 
+    companion object {
+        private const val NOTIFICATION_PERMISSION_CODE = 100
+        private const val TAG = "NotifikasiFragment"
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -55,6 +70,20 @@ class NotifikasiFragment : Fragment() {
         loadNotificationSchedules()
 
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Request notification permission untuk Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestNotificationPermission()
+        }
+
+        // Check exact alarm permission untuk Android 12+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            checkExactAlarmPermission()
+        }
     }
 
     private fun initViews(view: View) {
@@ -113,34 +142,65 @@ class NotifikasiFragment : Fragment() {
             .document(userId)
             .get()
             .addOnSuccessListener { document ->
-                document.toObject(UserSettings::class.java)?.let { settings ->
-                    switchNotifications.isChecked = settings.notificationsEnabled
-                    switchSound.isChecked = settings.soundEnabled
-                    switchVibration.isChecked = settings.vibrationEnabled
+                if (document.exists()) {
+                    document.toObject(UserSettings::class.java)?.let { settings ->
+                        switchNotifications.isChecked = settings.notificationsEnabled
+                        switchSound.isChecked = settings.soundEnabled
+                        switchVibration.isChecked = settings.vibrationEnabled
+                    }
+                } else {
+                    // Buat default settings jika belum ada
+                    val defaultSettings = UserSettings(
+                        userId = userId,
+                        notificationsEnabled = true,
+                        soundEnabled = true,
+                        vibrationEnabled = true
+                    )
+                    firestore.collection("user_settings")
+                        .document(userId)
+                        .set(defaultSettings)
                 }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error loading user settings", e)
             }
     }
 
     private fun loadNotificationSchedules() {
         firestore.collection("notification_schedules")
             .whereEqualTo("userId", userId)
-            .orderBy("hour")
-            .orderBy("minute")
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
-                    Toast.makeText(requireContext(), "Error: ${error.message}", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Error loading schedules", error)
+                    Toast.makeText(
+                        requireContext(),
+                        "Error memuat jadwal: ${error.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     return@addSnapshotListener
                 }
 
                 notificationSchedules.clear()
+
                 snapshots?.documents?.forEach { doc ->
-                    doc.toObject(NotificationSchedule::class.java)?.let {
-                        notificationSchedules.add(it)
+                    try {
+                        doc.toObject(NotificationSchedule::class.java)?.let { schedule ->
+                            notificationSchedules.add(schedule)
+                            Log.d(TAG, "Loaded schedule: ${schedule.hour}:${schedule.minute}, type: ${schedule.type}, days: ${schedule.repeatDays}")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing schedule document: ${doc.id}", e)
                     }
                 }
 
-                adapter.updateSchedules(notificationSchedules)
+                // Sort berdasarkan jam dan menit
+                notificationSchedules.sortWith(compareBy({ it.hour }, { it.minute }))
+
+                // Update adapter
+                adapter.notifyDataSetChanged()
                 updateEmptyState()
+
+                Log.d(TAG, "Total schedules loaded: ${notificationSchedules.size}")
             }
     }
 
@@ -208,11 +268,15 @@ class NotifikasiFragment : Fragment() {
             .setTitle("Pesan Custom")
             .setView(input)
             .setPositiveButton("Lanjut") { _, _ ->
-                val message = input.text.toString()
+                val message = input.text.toString().trim()
                 if (message.isNotEmpty()) {
                     showRepeatDaysDialog(hour, minute, "custom", message)
                 } else {
-                    Toast.makeText(requireContext(), "Pesan tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Pesan tidak boleh kosong",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
             .setNegativeButton("Batal", null)
@@ -225,7 +289,7 @@ class NotifikasiFragment : Fragment() {
         val selectedDays = mutableListOf<String>()
         val checkedItems = BooleanArray(7) { true }
 
-        // Add all days by default
+        // Semua hari aktif secara default
         selectedDays.addAll(dayCodes)
 
         AlertDialog.Builder(requireContext())
@@ -241,7 +305,11 @@ class NotifikasiFragment : Fragment() {
             }
             .setPositiveButton("Simpan") { _, _ ->
                 if (selectedDays.isEmpty()) {
-                    Toast.makeText(requireContext(), "Pilih minimal 1 hari", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Pilih minimal 1 hari",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     saveNotificationSchedule(hour, minute, type, customMessage, selectedDays)
                 }
@@ -269,15 +337,29 @@ class NotifikasiFragment : Fragment() {
             createdAt = System.currentTimeMillis()
         )
 
+        Log.d(TAG, "Saving schedule: ${schedule.hour}:${schedule.minute}, type: ${schedule.type}, days: ${schedule.repeatDays}")
+
         firestore.collection("notification_schedules")
             .document(schedule.id)
             .set(schedule)
             .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Jadwal berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Schedule saved successfully")
+                Toast.makeText(
+                    requireContext(),
+                    "Jadwal berhasil ditambahkan",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                // Schedule alarm
                 alarmScheduler.scheduleAlarm(schedule)
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "Error saving schedule", e)
+                Toast.makeText(
+                    requireContext(),
+                    "Error: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
     }
 
@@ -290,12 +372,23 @@ class NotifikasiFragment : Fragment() {
                     .document(schedule.id)
                     .delete()
                     .addOnSuccessListener {
-                        Toast.makeText(requireContext(), "Jadwal berhasil dihapus", Toast.LENGTH_SHORT).show()
+                        Log.d(TAG, "Schedule deleted: ${schedule.id}")
+                        Toast.makeText(
+                            requireContext(),
+                            "Jadwal berhasil dihapus",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        // Cancel alarm
                         alarmScheduler.cancelAlarm(schedule.id)
-                        adapter.removeSchedule(schedule)
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Log.e(TAG, "Error deleting schedule", e)
+                        Toast.makeText(
+                            requireContext(),
+                            "Error: ${e.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
             }
             .setNegativeButton("Tidak", null)
@@ -303,10 +396,17 @@ class NotifikasiFragment : Fragment() {
     }
 
     private fun editSchedule(schedule: NotificationSchedule) {
-        Toast.makeText(requireContext(), "Fitur edit akan segera hadir", Toast.LENGTH_SHORT).show()
+        // TODO: Implement edit functionality
+        Toast.makeText(
+            requireContext(),
+            "Fitur edit akan segera hadir",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun toggleSchedule(scheduleId: String, isEnabled: Boolean) {
+        Log.d(TAG, "Toggle schedule: $scheduleId, enabled: $isEnabled")
+
         firestore.collection("notification_schedules")
             .document(scheduleId)
             .update("isEnabled", isEnabled)
@@ -314,11 +414,23 @@ class NotifikasiFragment : Fragment() {
                 val schedule = notificationSchedules.find { it.id == scheduleId }
                 schedule?.let {
                     if (isEnabled) {
+                        // Schedule ulang alarm
                         alarmScheduler.scheduleAlarm(it.copy(isEnabled = true))
+                        Log.d(TAG, "Alarm rescheduled for: ${it.hour}:${it.minute}")
                     } else {
+                        // Cancel alarm
                         alarmScheduler.cancelAlarm(scheduleId)
+                        Log.d(TAG, "Alarm cancelled")
                     }
                 }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error toggling schedule", e)
+                Toast.makeText(
+                    requireContext(),
+                    "Error: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
     }
 
@@ -327,7 +439,80 @@ class NotifikasiFragment : Fragment() {
             .document(userId)
             .update(field, value)
             .addOnSuccessListener {
-                // Settings updated
+                Log.d(TAG, "User settings updated: $field = $value")
             }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error updating user settings", e)
+            }
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    NOTIFICATION_PERMISSION_CODE
+                )
+            }
+        }
+    }
+
+    private fun checkExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+            if (!alarmManager.canScheduleExactAlarms()) {
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Izin Diperlukan")
+                    .setMessage("Aplikasi memerlukan izin untuk mengatur alarm tepat waktu. Silakan aktifkan di pengaturan.")
+                    .setPositiveButton("Buka Pengaturan") { _, _ ->
+                        try {
+                            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Cannot open exact alarm settings", e)
+                            Toast.makeText(
+                                requireContext(),
+                                "Tidak dapat membuka pengaturan",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                    .setNegativeButton("Nanti", null)
+                    .show()
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            NOTIFICATION_PERMISSION_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "Notification permission granted")
+                    Toast.makeText(
+                        requireContext(),
+                        "Izin notifikasi diberikan",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Log.d(TAG, "Notification permission denied")
+                    Toast.makeText(
+                        requireContext(),
+                        "Izin notifikasi ditolak. Fitur pengingat mungkin tidak berfungsi.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
     }
 }

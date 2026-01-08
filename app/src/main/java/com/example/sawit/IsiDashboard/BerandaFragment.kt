@@ -23,6 +23,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.load.DataSource
+import com.example.sawit.Dashboard
 
 
 class BerandaFragment : Fragment() {
@@ -100,6 +101,12 @@ class BerandaFragment : Fragment() {
                 .document(currentUser.uid)
                 .get()
                 .addOnSuccessListener { document ->
+                    // ✅ PENGECEKAN PENTING: Pastikan Fragment masih attached
+                    if (!isAdded || activity == null) {
+                        Log.d("ProfileDebug", "Fragment not attached, skipping profile load")
+                        return@addOnSuccessListener
+                    }
+
                     Log.d("ProfileDebug", "Document fetched, exists: ${document.exists()}")
 
                     if (document.exists()) {
@@ -112,6 +119,7 @@ class BerandaFragment : Fragment() {
                         if (!profileImageUrl.isNullOrEmpty()) {
                             Log.d("ProfileDebug", "Loading image with Glide")
 
+                            // ✅ Glide sekarang aman dipanggil karena sudah dicek isAdded
                             Glide.with(this)
                                 .load(profileImageUrl)
                                 .placeholder(R.drawable.profile)
@@ -125,22 +133,30 @@ class BerandaFragment : Fragment() {
                         }
                     } else {
                         Log.e("ProfileDebug", "Document does not exist")
-                        tvGreeting.text = "Hi, Kawan Sawit"
-                        ivProfile.setImageResource(R.drawable.profile)
+                        setDefaultProfile()
                     }
                 }
                 .addOnFailureListener { e ->
+                    // ✅ Cek juga di failure listener
+                    if (!isAdded) {
+                        Log.d("ProfileDebug", "Fragment not attached on failure")
+                        return@addOnFailureListener
+                    }
+
                     Log.e("ProfileDebug", "Failed to fetch document: ${e.message}")
                     Toast.makeText(requireContext(), "Gagal memuat profil: ${e.message}", Toast.LENGTH_SHORT).show()
-                    tvGreeting.text = "Hi, Kawan Sawit"
-                    ivProfile.setImageResource(R.drawable.profile)
+                    setDefaultProfile()
                 }
         } else {
             Log.e("ProfileDebug", "Current user is NULL")
-            tvGreeting.text = "Hi, Kawan Sawit"
-            ivProfile.setImageResource(R.drawable.profile)
+            setDefaultProfile()
         }
-    }    private fun setDefaultProfile() {
+    }
+
+    private fun setDefaultProfile() {
+        // ✅ Cek juga saat set default
+        if (!isAdded) return
+
         tvGreeting.text = "Hi, Kawan Sawit"
         ivProfile.setImageResource(R.drawable.profile)
     }
@@ -240,14 +256,33 @@ class BerandaFragment : Fragment() {
             navigateToFragment(RiwayatDeteksiFragment())
         }
 
-        // Lihat Semua Dokter
+        // Lihat Semua Dokter -> Navigasi ke halaman Edukasi (tampil dari atas)
         tvLihatSemuaDokter.setOnClickListener {
-            Toast.makeText(context, "Lihat Semua Dokter Sawit", Toast.LENGTH_SHORT).show()
+            val edukasiFragment = EdukasiFragment()
+
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, edukasiFragment)
+                .addToBackStack(null)
+                .commit()
+
+            (requireActivity() as? Dashboard)?.updateSelectedMenu("search")
         }
 
-        // Button Lihat Video
+        // Button Lihat Video -> Navigasi ke halaman Edukasi + Auto scroll ke video
         btnLihatVideo.setOnClickListener {
-            Toast.makeText(context, "Lihat Video Edukasi", Toast.LENGTH_SHORT).show()
+            val edukasiFragment = EdukasiFragment()
+
+            // Kirim argument untuk scroll ke bagian video
+            edukasiFragment.arguments = Bundle().apply {
+                putBoolean("scrollToVideo", true)
+            }
+
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, edukasiFragment)
+                .addToBackStack(null)
+                .commit()
+
+            (requireActivity() as? Dashboard)?.updateSelectedMenu("search")
         }
     }
 
